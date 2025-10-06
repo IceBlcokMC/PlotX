@@ -1,8 +1,8 @@
 #pragma once
+#include "model/StorageStructure.hpp"
 #include "mc/platform/UUID.h"
 #include "nlohmann/json_fwd.hpp"
 #include "plotx/Global.hpp"
-#include "plotx/data/StorageStructure.hpp"
 #include "plotx/infra/DirtyCounter.hpp"
 #include "plotx/infra/IdAllocator.hpp"
 #include "plotx/math/PlotCoord.hpp"

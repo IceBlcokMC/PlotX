@@ -1,11 +1,11 @@
 #include "PlotRegistry.hpp"
+#include "model/StorageStructure.hpp"
 #include "ll/api/data/KeyValueDB.h"
 #include "nlohmann/json.hpp"
 #include "nlohmann/json_fwd.hpp"
 #include "plotx/PlotX.hpp"
 #include "plotx/core/PlotHandle.hpp"
 #include "plotx/core/PlotRegistry.hpp"
-#include "plotx/data/StorageStructure.hpp"
 #include "plotx/infra/IntEncoder.hpp"
 #include "plotx/infra/Reflection.hpp"
 #include <algorithm>
