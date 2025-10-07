@@ -1,6 +1,6 @@
 #include "PlotRegistry.hpp"
-#include "model/StorageStructure.hpp"
 #include "ll/api/data/KeyValueDB.h"
+#include "model/StorageModel.hpp"
 #include "nlohmann/json.hpp"
 #include "nlohmann/json_fwd.hpp"
 #include "plotx/PlotX.hpp"
@@ -26,7 +26,7 @@ PlotRegistry::PlotRegistry(PlotX& plotx) {
     std::unique_lock<std::shared_mutex> lock{mutex_};
     db_ = std::make_unique<ll::data::KeyValueDB>(dir);
     if (isNew) {
-        db_->set(VersionKey, std::to_string(PlotRecordVersion));
+        db_->set(VersionKey, std::to_string(PlotModelVersion));
     }
 
     if (!db_->has(VersionKey)) {
@@ -34,11 +34,11 @@ PlotRegistry::PlotRegistry(PlotX& plotx) {
     }
 
     auto version = std::stoi(*db_->get(VersionKey));
-    if (version > PlotRecordVersion) {
+    if (version > PlotModelVersion) {
         throw std::runtime_error("PlotRegistry: Database version is newer than supported");
     }
 
-    if (version < PlotRecordVersion) {
+    if (version < PlotModelVersion) {
         _upgradeDatabase(logger);
     }
 
@@ -50,7 +50,7 @@ PlotRegistry::~PlotRegistry() {}
 
 
 void PlotRegistry::_upgradeDatabase(ll::io::Logger& logger) {
-    db_->set(VersionKey, std::to_string(PlotRecordVersion));
+    db_->set(VersionKey, std::to_string(PlotModelVersion));
     // TODO: Implement database upgrade
 }
 

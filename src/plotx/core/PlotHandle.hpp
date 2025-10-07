@@ -1,6 +1,6 @@
 #pragma once
-#include "model/StorageStructure.hpp"
 #include "mc/platform/UUID.h"
+#include "model/StorageModel.hpp"
 #include "nlohmann/json_fwd.hpp"
 #include "plotx/Global.hpp"
 #include "plotx/infra/DirtyCounter.hpp"
@@ -20,7 +20,7 @@ namespace plotx {
  * @brief 地皮句柄，对地皮数据的操作接口
  */
 class PlotHandle {
-    PlotRecord   record_{};
+    PlotModel   record_{};
     DirtyCounter dirty_{};
     IdAllocator  commentId_{};
 
@@ -32,7 +32,7 @@ public:
     PLOTX_DISALLOW_COPY(PlotHandle);
 
     PXAPI explicit PlotHandle();
-    PXAPI explicit PlotHandle(PlotRecord record);
+    PXAPI explicit PlotHandle(PlotModel record);
     PXAPI ~PlotHandle();
 
     template <typename... Args>
@@ -71,11 +71,11 @@ public:
 
     PXAPI void removeMember(mce::UUID const& member);
 
-    PXAPI std::vector<CommentRecord> const& getComments() const;
+    PXAPI std::vector<CommentModel> const& getComments() const;
 
-    PXAPI std::vector<CommentRecord> getComments(mce::UUID const& author) const;
+    PXAPI std::vector<CommentModel> getComments(mce::UUID const& author) const;
 
-    PXAPI std::optional<CommentRecord> getComment(CommentID id) const;
+    PXAPI std::optional<CommentModel> getComment(CommentID id) const;
 
     PXAPI CommentID addComment(mce::UUID const& author, std::string const& content);
 

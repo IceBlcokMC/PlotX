@@ -1,6 +1,6 @@
 #include "PlotHandle.hpp"
-#include "model/StorageStructure.hpp"
 #include "mc/platform/UUID.h"
+#include "model/StorageModel.hpp"
 #include "nlohmann/json.hpp"
 #include "nlohmann/json_fwd.hpp"
 #include "plotx/infra/DirtyCounter.hpp"
@@ -16,7 +16,7 @@ namespace plotx {
 
 
 PlotHandle::PlotHandle() = default;
-PlotHandle::PlotHandle(PlotRecord record)
+PlotHandle::PlotHandle(PlotModel record)
 : record_(std::move(record)),
   coord_(record_.position_.x, record_.position_.z) {
     if (!record_.comments_.empty()) {
@@ -105,19 +105,19 @@ void PlotHandle::removeMember(mce::UUID const& member) {
     dirty_.inc();
 }
 
-std::vector<CommentRecord> const& PlotHandle::getComments() const { return record_.comments_; }
+std::vector<CommentModel> const& PlotHandle::getComments() const { return record_.comments_; }
 
-std::vector<CommentRecord> PlotHandle::getComments(mce::UUID const& author) const {
+std::vector<CommentModel> PlotHandle::getComments(mce::UUID const& author) const {
     auto str = author.asString();
 
-    std::vector<CommentRecord> result;
+    std::vector<CommentModel> result;
     std::copy_if(record_.comments_.begin(), record_.comments_.end(), std::back_inserter(result), [&str](auto const& c) {
         return c.author_ == str;
     });
     return result;
 }
 
-std::optional<CommentRecord> PlotHandle::getComment(CommentID id) const {
+std::optional<CommentModel> PlotHandle::getComment(CommentID id) const {
     auto it =
         std::find_if(record_.comments_.begin(), record_.comments_.end(), [&id](auto const& c) { return c.id_ == id; });
     if (it == record_.comments_.end()) {
@@ -155,7 +155,7 @@ bool PlotHandle::isMergedMultiPlot() const { return record_.isMerged_; }
 nlohmann::json PlotHandle::dump() const { return reflection::struct2json(record_); }
 
 std::shared_ptr<PlotHandle> PlotHandle::load(nlohmann::json& json) {
-    auto record = PlotRecord{};
+    auto record = PlotModel{};
     reflection::json2structVersionPatch(json, record);
     return PlotHandle::make(std::move(record));
 }
