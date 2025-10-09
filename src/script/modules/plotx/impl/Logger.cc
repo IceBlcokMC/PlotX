@@ -1,8 +1,8 @@
 #include "ll/api/io/Logger.h"
 #include "plotx/PlotX.hpp"
-#include "script/api/plotx/defs.hpp"
 #include "qjspp/Binding.hpp"
 #include "qjspp/Values.hpp"
+#include "script/modules/plotx/defs.hpp"
 
 
 namespace plotx::script::api::inline plotx {

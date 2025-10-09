@@ -1,7 +1,7 @@
 #include "mc/network/packet/ModalFormCancelReason.h"
 #include "qjspp/Binding.hpp"
 #include "qjspp/Definitions.hpp"
-#include "script/api/minecraft/defs.hpp"
+#include "script/modules/minecraft/defs.hpp"
 
 
 namespace plotx::script::api::inline minecraft {

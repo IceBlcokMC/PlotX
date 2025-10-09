@@ -1,11 +1,11 @@
 #include "ll/api/data/KeyValueDB.h"
-#include "script/api/Helper.hpp"
-#include "script/api/levilamina/defs.hpp"
 #include "qjspp/Binding.hpp"
 #include "qjspp/Definitions.hpp"
 #include "qjspp/JsException.hpp"
 #include "qjspp/Types.hpp"
 #include "qjspp/Values.hpp"
+#include "script/modules/Helper.hpp"
+#include "script/modules/levilamina/defs.hpp"
 
 
 namespace plotx::script::api::inline levilamina {

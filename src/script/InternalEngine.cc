@@ -7,7 +7,7 @@
 #include <memory>
 #include <thread>
 
-#include "api/ModuleDef.hpp"
+#include "modules/ModuleDef.hpp"
 #include "qjspp/JsEngine.hpp"
 #include "qjspp/JsException.hpp"
 #include "qjspp/JsScope.hpp"

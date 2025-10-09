@@ -1,12 +1,12 @@
 #include "plotx/math/PlotAABB.hpp"
 #include "mc/world/level/BlockPos.h"
 #include "plotx/PlotX.hpp"
-#include "script/api/Helper.hpp"
-#include "script/api/plotx/defs.hpp"
 #include "qjspp/Binding.hpp"
 #include "qjspp/Definitions.hpp"
 #include "qjspp/JsException.hpp"
 #include "qjspp/Values.hpp"
+#include "script/modules/Helper.hpp"
+#include "script/modules/plotx/defs.hpp"
 
 
 namespace plotx::script::api::inline plotx {

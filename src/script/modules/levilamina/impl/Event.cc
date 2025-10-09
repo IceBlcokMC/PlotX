@@ -5,11 +5,11 @@
 #include "ll/api/event/ListenerBase.h"
 #include "ll/api/event/player/PlayerJoinEvent.h"
 #include "plotx/PlotX.hpp"
-#include "script/api/Helper.hpp"
-#include "script/api/levilamina/defs.hpp"
 #include "qjspp/Definitions.hpp"
 #include "qjspp/JsScope.hpp"
 #include "qjspp/Values.hpp"
+#include "script/modules/Helper.hpp"
+#include "script/modules/levilamina/defs.hpp"
 #include <string>
 
 

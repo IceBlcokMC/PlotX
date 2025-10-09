@@ -1,7 +1,7 @@
 #include "mc/world/level/BlockPos.h"
 #include "qjspp/Binding.hpp"
-#include "script/api/Helper.hpp"
-#include "script/api/minecraft/defs.hpp"
+#include "script/modules/Helper.hpp"
+#include "script/modules/minecraft/defs.hpp"
 
 
 namespace plotx::script::api::inline minecraft {

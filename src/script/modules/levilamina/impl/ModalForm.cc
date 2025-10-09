@@ -1,8 +1,8 @@
 #include "ll/api/form/ModalForm.h"
-#include "script/api/Helper.hpp"
-#include "script/api/levilamina/defs.hpp"
 #include "qjspp/Binding.hpp"
 #include "qjspp/Definitions.hpp"
+#include "script/modules/Helper.hpp"
+#include "script/modules/levilamina/defs.hpp"
 
 
 namespace plotx::script::api::inline levilamina {
