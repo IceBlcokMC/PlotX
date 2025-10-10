@@ -1,4 +1,4 @@
-import { Player } from "minecraft";
+import { Player } from "@minecraft";
 
 declare module "@levilamina" {
     export type ModalFormSelectedButton = NativeEnum<["Upper", "Lower"]>; // Upper: true, Lower: false

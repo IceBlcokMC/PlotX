@@ -1,4 +1,4 @@
-declare module "plotx" {
+declare module "@plotx" {
     export class logger {
         static trace(...args: any[]): void;
 

@@ -1,28 +1,19 @@
-import { Player } from "minecraft";
+import { Player } from "@minecraft";
 
 declare module "@levilamina" {
     export type CustomFormElementResult = variant<
         [null | number | string] // std::monostate, uint64, double, std::string
     >;
-    export type CustomFormResult<
-        T extends Record<string, CustomFormElementResult>
-    > = optional<T>;
-    export type CustomFormCallback<
-        T extends Record<string, CustomFormElementResult>
-    > = (
+    export type CustomFormResult<T extends Record<string, CustomFormElementResult>> = optional<T>;
+    export type CustomFormCallback<T extends Record<string, CustomFormElementResult>> = (
         player: Player,
         result: CustomFormResult<T>,
         cancelReason: FormCancelReason
     ) => void;
 
-    type _NoDuplicateKey_<
-        T extends Record<string, any>,
-        K extends string
-    > = K extends keyof T ? never : K;
+    type _NoDuplicateKey_<T extends Record<string, any>, K extends string> = K extends keyof T ? never : K;
 
-    export class CustomForm<
-        T extends Record<string, CustomFormElementResult> = {}
-    > {
+    export class CustomForm<T extends Record<string, CustomFormElementResult> = {}> {
         constructor();
 
         setTitle(title: string): this;

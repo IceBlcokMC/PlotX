@@ -1,12 +1,8 @@
-import { Player } from "minecraft";
+import { Player } from "@minecraft";
 
 declare module "@levilamina" {
     export type SimpleFormButtonCallback = (player: Player) => void;
-    export type SimpleFormCallback = (
-        player: Player,
-        index: number,
-        cancelReason: FormCancelReason
-    ) => void;
+    export type SimpleFormCallback = (player: Player, index: number, cancelReason: FormCancelReason) => void;
 
     export class SimpleForm {
         constructor();

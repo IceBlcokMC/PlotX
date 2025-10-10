@@ -1,6 +1,6 @@
-import {CustomForm, EventBus, EventPriority, KeyValueDB, ModalFormSelectedButton} from "@levilamina";
-import {BlockPos, ModalFormCancelReason, Player} from "minecraft";
-import {logger, PlotAABB} from "plotx";
+import { CustomForm, EventBus, EventPriority, KeyValueDB, ModalFormSelectedButton } from "@levilamina";
+import { BlockPos, ModalFormCancelReason, Player } from "@minecraft";
+import { logger, PlotAABB } from "@plotx";
 
 /**
  * @param {Player} pl

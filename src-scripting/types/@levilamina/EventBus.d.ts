@@ -1,5 +1,5 @@
 declare module "@levilamina" {
-    import { Player } from "minecraft";
+    import { Player } from "@minecraft";
 
     interface _EventMap_ {
         // TODO: Add more events

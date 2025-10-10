@@ -1,4 +1,4 @@
-declare module "minecraft" {
+declare module "@minecraft" {
     export class Player {
         get uuid(): UUID;
         get realName(): string;

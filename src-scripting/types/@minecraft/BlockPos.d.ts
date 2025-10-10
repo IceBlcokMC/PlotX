@@ -1,4 +1,4 @@
-declare module "minecraft" {
+declare module "@minecraft" {
     export class BlockPos {
         constructor(x: number, y: number, z: number);
 

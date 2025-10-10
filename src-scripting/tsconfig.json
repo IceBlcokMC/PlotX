@@ -19,11 +19,11 @@
             "@levilamina": [
                 "../types/@levilamina/index.d.ts"
             ],
-            "minecraft": [
-                "../types/minecraft/index.d.ts"
+            "@minecraft": [
+                "../types/@minecraft/index.d.ts"
             ],
-            "plotx": [
-                "../types/plotx/index.d.ts"
+            "@plotx": [
+                "../types/@plotx/index.d.ts"
             ]
         }
     },

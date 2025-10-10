@@ -1,6 +1,6 @@
-import { BlockPos } from "minecraft";
+import { BlockPos } from "@minecraft";
 
-declare module "plotx" {
+declare module "@plotx" {
     export type PlotAABBForEachCallBack = (pos: BlockPos) => boolean;
 
     export class PlotAABB implements InstanceClassHelper<PlotAABB> {
