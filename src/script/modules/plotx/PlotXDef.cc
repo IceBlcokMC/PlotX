@@ -6,7 +6,8 @@ namespace plotx::script::modules {
 
 
 qjspp::ModuleDefine const& PlotXDef::getModuleDef() {
-    static auto def = qjspp::defineModule("@plotx").addClass(LoggerDef_).addClass(PlotAABBDef_).build();
+    static auto def =
+        qjspp::defineModule("@plotx").addClass(LoggerDef_).addClass(PlotAABBDef_).addClass(PlotCoordDef_).build();
     return def;
 }
 
