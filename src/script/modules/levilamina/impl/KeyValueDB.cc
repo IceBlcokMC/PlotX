@@ -48,8 +48,8 @@ qjspp::ClassDefine const LeviLaminaDef::KeyValueDBDef_ =
         .instanceMethod(
             "close",
             [](void*, qjspp::Arguments const& args) -> qjspp::Value {
-                if (args.hasWrappedResource()) {
-                    args.getWrappedResource()->finalize();
+                if (args.hasJsManagedResource()) {
+                    args.getJsManagedResource()->finalize();
                     return qjspp::Boolean{true};
                 }
                 return qjspp::Boolean{false};

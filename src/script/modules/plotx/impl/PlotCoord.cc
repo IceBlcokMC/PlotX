@@ -9,7 +9,7 @@ namespace plotx::script::modules {
 
 qjspp::ClassDefine const PlotXDef::PlotCoordDef_ =
     qjspp::defineClass<PlotCoord>("PlotCoord")
-        .extends(PlotXDef::PlotAABBDef_)
+        .extends(PlotAABBDef_)
         .constructor<int, int>()
         .constructor<BlockPos const&>()
         .instanceProperty("x", &PlotCoord::x)

@@ -15,45 +15,10 @@ namespace plotx::script::modules {
 
 qjspp::ClassDefine const PlotXDef::PlotAABBDef_ =
     qjspp::defineClass<PlotAABB>("PlotAABB")
-        .constructor<BlockPos const&, BlockPos const&>() // constructor(min, max)
-        .instanceProperty(
-            "min",
-            [](void* inst, qjspp::Arguments const& args) -> qjspp::Value {
-                return args.engine()->newInstanceOfView(
-                    MinecraftDef::BlockPosDef_,
-                    static_cast<void*>(&static_cast<PlotAABB*>(inst)->min),
-                    args.thiz() // Associated Lifecycle
-                );
-            },
-            [](void* inst, qjspp::Arguments const& args) -> qjspp::Value {
-                if (!args[0].isObject()
-                    || !args.engine()->isInstanceOf(args[0].asObject(), MinecraftDef::BlockPosDef_)) {
-                    throw qjspp::JsException{qjspp::JsException::Type::TypeError, "Expected object of type BlockPos"};
-                }
-                static_cast<PlotAABB*>(inst)->min =
-                    *args.engine()->getNativeInstanceOf<BlockPos>(args[0].asObject(), MinecraftDef::BlockPosDef_);
-                return {}; // undefined
-            }
-        )
-        .instanceProperty(
-            "max",
-            [](void* inst, qjspp::Arguments const& args) -> qjspp::Value {
-                return args.engine()->newInstanceOfView(
-                    MinecraftDef::BlockPosDef_,
-                    static_cast<void*>(&static_cast<PlotAABB*>(inst)->max),
-                    args.thiz() // Associated Lifecycle
-                );
-            },
-            [](void* inst, qjspp::Arguments const& args) -> qjspp::Value {
-                if (!args[0].isObject()
-                    || !args.engine()->isInstanceOf(args[0].asObject(), MinecraftDef::BlockPosDef_)) {
-                    throw qjspp::JsException{qjspp::JsException::Type::TypeError, "Expected object of type BlockPos"};
-                }
-                static_cast<PlotAABB*>(inst)->max =
-                    *args.engine()->getNativeInstanceOf<BlockPos>(args[0].asObject(), MinecraftDef::BlockPosDef_);
-                return {}; // undefined
-            }
-        )
+        .constructor<>()
+        .constructor<BlockPos const&, BlockPos const&>()
+        .instancePropertyRef("min", &PlotAABB::min, MinecraftDef::BlockPosDef_)
+        .instancePropertyRef("max", &PlotAABB::max, MinecraftDef::BlockPosDef_)
         .instanceMethod("toString", &PlotAABB::toString)
         .instanceMethod("getMin", static_cast<BlockPos& (PlotAABB::*)()>(&PlotAABB::getMin))
         .instanceMethod("getMax", static_cast<BlockPos& (PlotAABB::*)()>(&PlotAABB::getMax))

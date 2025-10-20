@@ -1,17 +1,16 @@
-import { BlockPos } from "@minecraft";
+import {BlockPos} from "@minecraft";
 
 declare module "@plotx" {
     export type PlotAABBForEachCallBack = (pos: BlockPos) => boolean;
 
     export class PlotAABB implements InstanceClassHelper<PlotAABB> {
+        constructor();
         constructor(min: BlockPos, max: BlockPos);
+
         $equals(other: PlotAABB): boolean;
 
-        get min(): BlockPos;
-        set min(min: BlockPos);
-
-        get max(): BlockPos;
-        set max(max: BlockPos);
+        min: BlockPos;
+        max: BlockPos;
 
         toString(): string;
 
