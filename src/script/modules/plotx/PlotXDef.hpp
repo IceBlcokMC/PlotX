@@ -20,6 +20,7 @@ struct PlotXDef {
     static qjspp::ClassDefine const PlotAABBDef_;
     static qjspp::ClassDefine const PlotCoordDef_;
     static qjspp::ClassDefine const PlotRoadDef_;
+    static qjspp::ClassDefine const PlotCrossDef_;
 
     static qjspp::ModuleDefine const& getModuleDef();
 };

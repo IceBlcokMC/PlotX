@@ -11,6 +11,7 @@ qjspp::ModuleDefine const& PlotXDef::getModuleDef() {
                           .addClass(PlotAABBDef_)
                           .addClass(PlotCoordDef_)
                           .addClass(PlotRoadDef_)
+                          .addClass(PlotCrossDef_)
                           .build();
     return def;
 }
