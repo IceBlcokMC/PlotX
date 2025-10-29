@@ -1,6 +1,32 @@
-import { CustomForm, EventBus, EventPriority, KeyValueDB, ModalFormSelectedButton } from "@levilamina";
-import { BlockPos, ModalFormCancelReason, Player } from "@minecraft";
-import { logger, PlotAABB } from "@plotx";
+import {CustomForm, EventBus, EventPriority, KeyValueDB, ModalFormSelectedButton} from "@levilamina";
+import {BlockPos, ModalFormCancelReason, Player} from "@minecraft";
+import {PlotAABB} from "@plotx";
+
+
+
+let mod = ScriptMod.current();
+let logger = mod.getLogger();
+if (mod) {
+    mod.onLoad((self) => {
+        logger.warn("ScriptMod onLoad triggered");
+        return true;
+    });
+    mod.onEnable((self) => {
+        logger.warn("ScriptMod onEnable triggered");
+        return true;
+    });
+    mod.onDisable((self) => {
+        logger.warn("ScriptMod onDisable triggered");
+        return true;
+    });
+    mod.onUnload((self) => {
+        logger.warn("ScriptMod onUnload triggered");
+        return true;
+    });
+} else {
+    logger.warn("ScriptMod not found!");
+}
+
 
 /**
  * @param {Player} pl

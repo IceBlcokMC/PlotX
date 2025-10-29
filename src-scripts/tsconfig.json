@@ -14,7 +14,7 @@
         "strictNullChecks": true, // 严格空值检查
         "noImplicitAny": true, // 不允许隐式any类型
         "noEmitHelpers": true, // 不生成辅助代码
-        "baseUrl": "src/",
+        "baseUrl": "PlotX-Scripts/",
         "paths": {
             "@levilamina": [
                 "../types/@levilamina/index.d.ts"
@@ -28,7 +28,8 @@
         }
     },
     "include": [
-        "src/**/*.js",
-        "types/qjspp.d.ts"
+        "PlotX-Scripts/**/*.js",
+        "types/qjspp.d.ts",
+        "types/globalThis.d.ts"
     ]
 }

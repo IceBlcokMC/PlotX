@@ -4,3 +4,4 @@
 /// <reference path="./ModalForm.d.ts" />
 /// <reference path="./EventBus.d.ts" />
 /// <reference path="./KeyValueDB.d.ts" />
+/// <reference path="./Logger.d.ts" />

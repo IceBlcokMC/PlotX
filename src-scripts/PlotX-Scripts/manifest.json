@@ -1,0 +1,11 @@
+{
+  "name": "PlotX-Scripts",
+  "type": "plotx-script",
+  "entry": "main.js",
+  "version": "0.1.0",
+  "dependencies": [
+    {
+      "name": "PlotX"
+    }
+  ]
+}

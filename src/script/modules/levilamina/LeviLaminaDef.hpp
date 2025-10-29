@@ -31,6 +31,9 @@ struct LeviLaminaDef {
     // === Data API ===
     static qjspp::ClassDefine const KeyValueDBDef_;
 
+    static qjspp::ClassDefine const ScriptLogger;
+    static qjspp::EnumDefine const  ScriptLogLevel;
+
     static qjspp::ModuleDefine const& getModuleDef();
 };
 

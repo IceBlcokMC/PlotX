@@ -16,6 +16,8 @@ qjspp::ModuleDefine const& LeviLaminaDef::getModuleDef() {
                                          .addClass(PlayerJoinEventDef_)
                                          .addEnum(EventPriorityDef_)
                                          .addClass(KeyValueDBDef_)
+                                         .addClass(ScriptLogger)
+                                         .addEnum(ScriptLogLevel)
                                          .build();
     return def;
 }

@@ -10,8 +10,6 @@ namespace plotx::script::modules {
 struct PlotXDef {
     PlotXDef() = delete;
 
-    static qjspp::ClassDefine const LoggerDef_;
-
     // === core ===
     static qjspp::ClassDefine const PlotHandleDef_;
     static qjspp::ClassDefine const PlotRegistryDef_;

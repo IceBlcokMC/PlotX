@@ -9,7 +9,7 @@
 #include "qjspp/Binding.hpp"
 #include "qjspp/JsEngine.hpp"
 #include "qjspp/JsManagedResource.hpp"
-#include "qjspp/JsScope.hpp"
+#include "qjspp/Locker.hpp"
 #include "qjspp/TypeConverter.hpp"
 #include "qjspp/Values.hpp"
 
@@ -20,7 +20,7 @@
 namespace plotx::script {
 
 inline qjspp::Object newInstanceOfGameWeak(qjspp::ClassDefine const& def, Player* player) {
-    auto& engine = qjspp::JsScope::currentEngineChecked();
+    auto& engine = qjspp::Locker::currentEngineChecked();
     struct Control {
         WeakRef<EntityContext> player_;
         explicit Control(Player* pl) : player_{pl->getWeakEntity()} {}
@@ -62,7 +62,7 @@ struct TypeConverter<Player> {
         if (!value.isObject()) {
             return nullptr;
         }
-        return JsScope::currentEngineChecked().getNativeInstanceOf<Player>(
+        return Locker::currentEngineChecked().getNativeInstanceOf<Player>(
             value.asObject(),
             plotx::script::modules::MinecraftDef::MinecraftDef::PlayerDef_
         );
@@ -79,7 +79,7 @@ template <>
 struct TypeConverter<mce::UUID> {
     static Value toJs(mce::UUID uuid) { // 值传递，创建一个副本
         auto unique = std::make_unique<mce::UUID>(uuid);
-        return JsScope::currentEngineChecked().newInstanceOfUnique(
+        return Locker::currentEngineChecked().newInstanceOfUnique(
             plotx::script::modules::MinecraftDef::UUIDDef_,
             std::move(unique)
         );
@@ -89,7 +89,7 @@ struct TypeConverter<mce::UUID> {
         if (!value.isObject()) {
             return nullptr;
         }
-        return JsScope::currentEngineChecked().getNativeInstanceOf<mce::UUID>(
+        return Locker::currentEngineChecked().getNativeInstanceOf<mce::UUID>(
             value.asObject(),
             plotx::script::modules::MinecraftDef::UUIDDef_
         );
@@ -101,7 +101,7 @@ static_assert(internal::IsTypeConverterAvailable_v<mce::UUID>);
 template <>
 struct TypeConverter<Vec3> {
     static Value toJs(Vec3 vec) {
-        return JsScope::currentEngineChecked().newInstanceOfRaw(
+        return Locker::currentEngineChecked().newInstanceOfRaw(
             plotx::script::modules::MinecraftDef::Vec3Def_,
             new Vec3(vec.x, vec.y, vec.z)
         );
@@ -110,7 +110,7 @@ struct TypeConverter<Vec3> {
         if (!value.isObject()) {
             return nullptr;
         }
-        return JsScope::currentEngineChecked().getNativeInstanceOf<Vec3>(
+        return Locker::currentEngineChecked().getNativeInstanceOf<Vec3>(
             value.asObject(),
             plotx::script::modules::MinecraftDef::Vec3Def_
         );
@@ -121,7 +121,7 @@ struct TypeConverter<Vec3> {
 template <>
 struct TypeConverter<BlockPos> {
     static Value toJs(BlockPos pos) {
-        return JsScope::currentEngineChecked().newInstanceOfRaw(
+        return Locker::currentEngineChecked().newInstanceOfRaw(
             plotx::script::modules::MinecraftDef::BlockPosDef_,
             new BlockPos(pos.x, pos.y, pos.z)
         );
@@ -130,7 +130,7 @@ struct TypeConverter<BlockPos> {
         if (!value.isObject()) {
             return nullptr;
         }
-        return JsScope::currentEngineChecked().getNativeInstanceOf<BlockPos>(
+        return Locker::currentEngineChecked().getNativeInstanceOf<BlockPos>(
             value.asObject(),
             plotx::script::modules::MinecraftDef::BlockPosDef_
         );

@@ -6,8 +6,9 @@
 #include "ll/api/event/player/PlayerJoinEvent.h"
 #include "plotx/PlotX.hpp"
 #include "qjspp/Definitions.hpp"
-#include "qjspp/JsScope.hpp"
+#include "qjspp/Locker.hpp"
 #include "qjspp/Values.hpp"
+#include "script/loader/ScriptMod.hpp"
 #include "script/modules/Helper.hpp"
 #include "script/modules/levilamina/LeviLaminaDef.hpp"
 #include <string>
@@ -75,14 +76,14 @@ qjspp::ClassDefine const LeviLaminaDef::EventBusDef_ =
                 }
 
                 auto listener = ll::event::ListenerPtr{nullptr};
-                auto scoped   = qjspp::ScopedValue{args.engine(), args[1]};
+                auto scoped   = qjspp::ScopedJsValue{args.engine(), args[1]};
                 auto name     = args[0].asString().value();
 
                 if (name == "PlayerJoinEvent") {
                     listener = GET_EVENT_BUS().emplaceListener<ll::event::PlayerJoinEvent>(
                         [sc = std::move(scoped)](ll::event::PlayerJoinEvent& ev) {
-                            auto           engine = sc.engine();
-                            qjspp::JsScope lock{engine};
+                            auto          engine = sc.engine();
+                            qjspp::Locker lock{engine};
 
                             auto cb = sc.value().asFunction();
                             try {
@@ -101,6 +102,7 @@ qjspp::ClassDefine const LeviLaminaDef::EventBusDef_ =
                 } else if (name == "PlayerLeaveEvent") {
                 }
 
+                std::static_pointer_cast<ScriptMod>(ScriptMod::current())->managedListener(listener);
                 return qjspp::Number{static_cast<int>(listener->getId())};
             }
         )

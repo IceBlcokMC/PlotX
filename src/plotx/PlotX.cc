@@ -11,16 +11,23 @@
 #include <memory>
 
 #include "plotx/core/PlotCommand.hpp"
-#include "script/InternalEngine.hpp"
+
+#include "script/EngineManager.hpp"
+#include "script/loader/ScriptLoader.hpp"
+
+#include <ll/api/mod/ModManagerRegistry.h>
 
 namespace plotx {
 
 
 struct PlotX::Impl {
-    ll::mod::NativeMod&                     self_;
-    std::unique_ptr<PlotEventDriven>        plotEventDriven_{nullptr};
-    std::unique_ptr<PlotRegistry>           registry_{nullptr};
-    std::unique_ptr<script::InternalEngine> engine_{nullptr};
+    ll::mod::NativeMod&              self_;
+    std::unique_ptr<PlotEventDriven> plotEventDriven_{nullptr};
+    std::unique_ptr<PlotRegistry>    registry_{nullptr};
+
+    // script
+    std::unique_ptr<script::EngineManager> engineManager_{nullptr};
+    std::shared_ptr<script::ScriptLoader>  scriptLoader_{nullptr};
 
     explicit Impl() : self_(*ll::mod::NativeMod::current()) {}
 };
@@ -38,20 +45,24 @@ bool PlotX::load() {
     logger.setLevel(ll::io::LogLevel::Trace);
 #endif
 
-    logger.trace("Try to load i18n");
+    logger.debug("Try to load i18n");
     if (auto i18n = ll::i18n::getInstance().load(getSelf().getLangDir()); !i18n) {
         logger.error("Failed to load i18n: ");
         i18n.error().log(logger);
     }
 
-    logger.trace("Try to load config");
+    logger.debug("Try to load config");
     loadConfig();
 
-    logger.trace("Initialize PlotRegistry");
+    logger.debug("Initialize PlotRegistry");
     impl_->registry_ = std::make_unique<PlotRegistry>(*this);
 
-    logger.trace("Initialize InternalEngine");
-    impl_->engine_ = std::make_unique<script::InternalEngine>(*this);
+    logger.debug("Initialize EngineManager");
+    impl_->engineManager_ = std::make_unique<script::EngineManager>();
+
+    logger.debug("Initialize ScriptLoader");
+    impl_->scriptLoader_ = std::make_shared<script::ScriptLoader>(*this);
+    (void)ll::mod::ModManagerRegistry::getInstance().addManager(impl_->scriptLoader_);
 
     return true;
 }
@@ -65,7 +76,9 @@ bool PlotX::enable() {
 }
 
 bool PlotX::disable() {
-    impl_->engine_.reset();
+    //! 这里不能析构加载器和引擎管理，因为此时脚本mod没有完成卸载
+    // impl_->scriptLoader_.reset();
+    // impl_->engineManager_.reset();
 
     impl_->plotEventDriven_.reset();
     impl_->registry_.reset();
@@ -74,8 +87,10 @@ bool PlotX::disable() {
 }
 
 
-ll::mod::NativeMod& PlotX::getSelf() const { return impl_->self_; }
-ll::io::Logger&     PlotX::getLogger() const { return impl_->self_.getLogger(); }
+ll::mod::NativeMod&                   PlotX::getSelf() const { return impl_->self_; }
+ll::io::Logger&                       PlotX::getLogger() const { return impl_->self_.getLogger(); }
+script::EngineManager*                PlotX::getEngineManager() const { return impl_->engineManager_.get(); }
+std::shared_ptr<script::ScriptLoader> PlotX::getScriptLoader() const { return impl_->scriptLoader_; }
 
 std::filesystem::path PlotX::getConfigPath() const { return getSelf().getConfigDir() / ConfigFileName; }
 
