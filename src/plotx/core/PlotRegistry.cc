@@ -17,23 +17,30 @@
 
 namespace plotx {
 
+struct PlotRegistry::Impl {
+    std::unique_ptr<ll::data::KeyValueDB>                      db_;     // 数据库
+    std::vector<std::string>                                   admins_; // 管理员
+    std::unordered_map<EncodedID, std::shared_ptr<PlotHandle>> plots_;  // 地皮
+    mutable std::shared_mutex                                  mutex_;  // 读写锁
+};
 
-PlotRegistry::PlotRegistry(PlotX& plotx) {
+
+PlotRegistry::PlotRegistry(PlotX& plotx) : impl_(std::make_unique<Impl>()) {
     auto& logger = plotx.getSelf().getLogger();
     auto  dir    = plotx.getDatabasePath();
     bool  isNew  = !std::filesystem::exists(dir);
 
-    std::unique_lock<std::shared_mutex> lock{mutex_};
-    db_ = std::make_unique<ll::data::KeyValueDB>(dir);
+    std::unique_lock lock{impl_->mutex_};
+    impl_->db_ = std::make_unique<ll::data::KeyValueDB>(dir);
     if (isNew) {
-        db_->set(VersionKey, std::to_string(PlotModelVersion));
+        impl_->db_->set(VersionKey, std::to_string(PlotModelVersion));
     }
 
-    if (!db_->has(VersionKey)) {
+    if (!impl_->db_->has(VersionKey)) {
         throw std::runtime_error("PlotRegistry: Invalid database version");
     }
 
-    auto version = std::stoi(*db_->get(VersionKey));
+    auto version = std::stoi(*impl_->db_->get(VersionKey));
     if (version > PlotModelVersion) {
         throw std::runtime_error("PlotRegistry: Database version is newer than supported");
     }
@@ -50,25 +57,25 @@ PlotRegistry::~PlotRegistry() {}
 
 
 void PlotRegistry::_upgradeDatabase(ll::io::Logger& logger) {
-    db_->set(VersionKey, std::to_string(PlotModelVersion));
+    impl_->db_->set(VersionKey, std::to_string(PlotModelVersion));
     // TODO: Implement database upgrade
 }
 
 void PlotRegistry::_loadAdmins(ll::io::Logger& logger) {
-    auto admins = db_->get(AdminsKey);
+    auto admins = impl_->db_->get(AdminsKey);
     if (!admins) {
         logger.info("No admins found in database");
         return;
     }
 
     auto parsed = nlohmann::json::parse(*admins);
-    reflection::json2struct(admins_, parsed);
+    reflection::json2struct(impl_->admins_, parsed);
 
-    logger.info("Loaded {} admins from database", admins_.size());
+    logger.info("Loaded {} admins from database", impl_->admins_.size());
 }
 
 void PlotRegistry::_loadPlots(ll::io::Logger& logger) {
-    for (auto const& [k, v] : db_->iter()) {
+    for (auto const& [k, v] : impl_->db_->iter()) {
         if (!k.starts_with(PlotKeyPrefix)) {
             continue;
         }
@@ -80,32 +87,32 @@ void PlotRegistry::_loadPlots(ll::io::Logger& logger) {
             continue;
         }
 
-        plots_.emplace(IntEncoder::encode(ptr->getCoord().x, ptr->getCoord().z), std::move(ptr));
+        impl_->plots_.emplace(IntEncoder::encode(ptr->getCoord().x, ptr->getCoord().z), std::move(ptr));
     }
 
-    logger.info("Loaded {} plots from database", plots_.size());
+    logger.info("Loaded {} plots from database", impl_->plots_.size());
 }
 
 
 bool PlotRegistry::isAdmin(mce::UUID const& uuid) const { return isAdmin(uuid.asString()); }
 bool PlotRegistry::isAdmin(std::string const& uuid) const {
-    std::shared_lock<std::shared_mutex> lock{mutex_};
-    return std::find(admins_.begin(), admins_.end(), uuid) != admins_.end();
+    std::shared_lock lock{impl_->mutex_};
+    return std::find(impl_->admins_.begin(), impl_->admins_.end(), uuid) != impl_->admins_.end();
 }
 
 void PlotRegistry::addAdmin(mce::UUID const& uuid) {
     if (isAdmin(uuid)) {
         return;
     }
-    std::unique_lock<std::shared_mutex> lock{mutex_};
-    admins_.emplace_back(uuid.asString());
+    std::unique_lock lock{impl_->mutex_};
+    impl_->admins_.emplace_back(uuid.asString());
 }
 void PlotRegistry::removeAdmin(mce::UUID const& uuid) {
     if (!isAdmin(uuid)) {
         return;
     }
-    std::unique_lock<std::shared_mutex> lock{mutex_};
-    admins_.erase(std::remove(admins_.begin(), admins_.end(), uuid.asString()), admins_.end());
+    std::unique_lock lock{impl_->mutex_};
+    std::erase(impl_->admins_, uuid.asString());
 }
 
 
