@@ -21,6 +21,40 @@ declare module "@levilamina" {
             requirement?: CommandPermissionLevel,
             flag?: CommandFlagValue
         ): CommandHandle;
+
+        hasEnum(name: string): boolean;
+
+        tryRegisterRuntimeEnum(
+            name: string,
+            values: pair<string, number>[]
+        ): boolean;
+
+        addRuntimeEnumValues(
+            name: string,
+            values: pair<string, number>[]
+        ): boolean;
+
+        hasSoftEnum(name: string): boolean;
+
+        tryRegisterSoftEnum(
+            name: string,
+            values: string[]
+        ): boolean;
+
+        addSoftEnumValues(
+            name: string,
+            values: string[]
+        ): boolean;
+
+        removeSoftEnumValues(
+            name: string,
+            values: string[]
+        ): boolean;
+
+        setSoftEnumValues(
+            name: string,
+            values: string[]
+        ): boolean;
     }
 
     export class CommandHandle implements InstanceClassHelper<CommandHandle> {
@@ -62,7 +96,7 @@ declare module "@levilamina" {
     type KindToType<K extends CommandParamKind> =
         K extends CommandParamKind.Int ? number :
             K extends CommandParamKind.Float ? number :
-                K extends CommandParamKind.Enum ? string :
+                K extends CommandParamKind.Enum ? number : // enum value
                     K extends CommandParamKind.SoftEnum ? string :
                         K extends CommandParamKind.String ? string :
                             K extends CommandParamKind.RawText ? string :
@@ -98,17 +132,17 @@ declare module "@levilamina" {
             kind: K extends SupportedKind ? K : never
         ): RuntimeOverload<T & { [P in N]: KindToType<K> }>;
 
-        optional<N extends string>(
+        optional<N extends string, K extends CommandParamKind.Enum | CommandParamKind.SoftEnum>(
             name: N,
-            enumKind: CommandParamKind.Enum | CommandParamKind.SoftEnum,
+            enumKind: K,
             enumName: string
-        ): RuntimeOverload<T & { [P in N]?: string }>;
+        ): RuntimeOverload<T & { [P in N]: KindToType<K> }>;
 
-        required<N extends string>(
+        required<N extends string, K extends CommandParamKind.Enum | CommandParamKind.SoftEnum>(
             name: N,
-            enumKind: CommandParamKind.Enum | CommandParamKind.SoftEnum,
+            enumKind: K,
             enumName: string
-        ): RuntimeOverload<T & { [P in N]: string }>;
+        ): RuntimeOverload<T & { [P in N]: KindToType<K> }>;
 
         text(
             text: string

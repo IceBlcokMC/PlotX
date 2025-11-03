@@ -95,6 +95,24 @@ qjspp::ClassDefine const LeviLaminaModule::ScriptCommandRegistrar =
                 );
             }
         )
+        .instanceMethod("hasEnum", &CommandRegistrar::hasEnum)
+        .instanceMethod(
+            "tryRegisterRuntimeEnum",
+            static_cast<bool (CommandRegistrar::*)(std::string const&, std::vector<std::pair<std::string, uint64>>)>(
+                &CommandRegistrar::tryRegisterRuntimeEnum
+            )
+        )
+        .instanceMethod("addRuntimeEnumValues", &CommandRegistrar::addRuntimeEnumValues)
+        .instanceMethod("hasSoftEnum", &CommandRegistrar::hasSoftEnum)
+        .instanceMethod(
+            "tryRegisterSoftEnum",
+            static_cast<bool (CommandRegistrar::*)(std::string const&, std::vector<std::string>)>(
+                &CommandRegistrar::tryRegisterSoftEnum
+            )
+        )
+        .instanceMethod("addSoftEnumValues", &CommandRegistrar::addSoftEnumValues)
+        .instanceMethod("removeSoftEnumValues", &CommandRegistrar::removeSoftEnumValues)
+        .instanceMethod("setSoftEnumValues", &CommandRegistrar::setSoftEnumValues)
         .build();
 
 
@@ -255,7 +273,7 @@ private:
             return qjspp::Null{};
         }
         if (storage.hold(CommandParamKind::Enum)) {
-            return qjspp::String{std::get<ll::command::RuntimeEnum>(storage.value()).name};
+            return qjspp::Number{static_cast<int>(std::get<ll::command::RuntimeEnum>(storage.value()).index)};
         }
         if (storage.hold(CommandParamKind::SoftEnum)) {
             return qjspp::String{std::get<ll::command::RuntimeSoftEnum>(storage.value())};

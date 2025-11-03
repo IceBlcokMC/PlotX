@@ -7,7 +7,7 @@ add_requires("levilamina 1.4.1", {configs = {target_type = "server"}})
 add_requires("levibuildscript")
 
 -- engsr6982
-add_requires("qjspp debb0ef66f059da789e3ba01ced22c3afbc595c1");
+add_requires("qjspp efd3b80cfca30517ef609cc7d632dd2525dd0574");
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")

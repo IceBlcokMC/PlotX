@@ -28,20 +28,24 @@ mod.onUnload((self) => {
 
 
 function regCmd() {
-    const cmd = CommandRegistrar.getInstance().getOrCreateCommand("test", "测试命令");
-    cmd.runtimeOverload().execute(() => {
-        logger.warn("test command executed 0");
-    })
-    cmd.runtimeOverload().text("foo").execute(() => {
-        logger.warn("test command executed 1");
+    const registrar = CommandRegistrar.getInstance();
+    const cmd = registrar.getOrCreateCommand("test", "测试命令");
+    registrar.tryRegisterRuntimeEnum("run", [
+        ["foo", 0],
+        ["bar", 1]
+    ]);
+    cmd.runtimeOverload().text("runtime_enum").required("run", CommandParamKind.Enum, "run").execute((ori, out, args) => {
+        let val = args.run;
+        out.success(`run: ${val}`);
     });
-    cmd.runtimeOverload().required("str", CommandParamKind.String).execute((ori, out, args) => {
-        let str = args["str"];
-        logger.warn("test command executed 2:", str);
-        let type = ori.getOriginType();
-        logger.warn("origin type:", type);
-        out.error("error message");
-    })
+
+    registrar.addSoftEnumValues("soft", ["a", "b"]);
+    cmd.runtimeOverload().text("soft")
+        .required("soft", CommandParamKind.SoftEnum, "soft")
+        .execute((ori, out, args) => {
+            let val = args["soft"];
+            out.success(`soft: ${val}`);
+        });
 }
 
 

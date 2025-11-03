@@ -27,7 +27,7 @@ declare type variant<Args extends readonly unknown[]> = Args[number];
  * export type EventPriority = NativeEnum<["Highest", "High", "Normal", "Low", "Lowest"]>;
  */
 declare type NativeEnum<Keys extends readonly string[]> = {
-    readonly $name: string; // qjapp generated
+    readonly $name: string; // qjspp generated
 } & {
     readonly [K in Keys[number]]: number;
 };
@@ -41,3 +41,8 @@ declare type NativeEnum<Keys extends readonly string[]> = {
 declare interface InstanceClassHelper<T> {
     $equals(other: T): boolean;
 }
+
+/**
+ * C++ pair
+ */
+declare type pair<K, V> = [K, V];
