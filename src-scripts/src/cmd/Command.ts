@@ -3,7 +3,6 @@ import {CommandOrigin, CommandOriginType, Player} from "@minecraft";
 
 
 function isPlayer(origin: CommandOrigin) {
-    // @ts-ignore
     return origin.getOriginType() == CommandOriginType.Player;
 }
 
