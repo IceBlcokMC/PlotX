@@ -12,14 +12,20 @@ declare module "@levilamina" {
 
     export type EventListenerId = number;
 
-    export type EventPriority = NativeEnum<["Highest", "High", "Normal", "Low", "Lowest"]>;
+    export type EventPriority = NativeEnum<{
+        Highest: 0,
+        High: 100,
+        Normal: 200,
+        Low: 300,
+        Lowest: 400,
+    }>;
     export const EventPriority: EventPriority; // fix ts 18042
 
     export class EventBus {
         static emplaceListener<N extends _EventNames_, E extends _EventMap_[N]>(
             eventName: N,
             listener: EventListener<N, E>,
-            priority?: EventPriority
+            priority?: EnumValue<EventPriority>
         ): EventListenerId;
 
         static removeListener(listenerId: EventListenerId): boolean;

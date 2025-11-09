@@ -3,7 +3,7 @@ declare module "@levilamina" {
     export class Logger implements InstanceClassHelper<Logger> {
         $equals(other: Logger): boolean;
 
-        log(level: LogLevel, ...args: any[]): void;
+        log(level: EnumValue<LogLevel>, ...args: any[]): void;
 
         fatal(...args: any[]): void;
 
@@ -19,26 +19,26 @@ declare module "@levilamina" {
 
         getTitle(): string;
 
-        getLevel(): LogLevel;
+        getLevel(): EnumValue<LogLevel>;
 
-        shouldLog(level: LogLevel): boolean;
+        shouldLog(level: EnumValue<LogLevel>): boolean;
 
-        setLevel(level: LogLevel): void;
+        setLevel(level: EnumValue<LogLevel>): void;
 
-        setFlushLevel(level: LogLevel): void;
+        setFlushLevel(level: EnumValue<LogLevel>): void;
 
         flush(): void;
     }
 
     export const LogLevel: LogLevel;
-    export type LogLevel = NativeEnum<[
-        "Off",
-        "Fatal",
-        "Error",
-        "Warn",
-        "Info",
-        "Debug",
-        "Trace"
-    ]>
+    export type LogLevel = NativeEnum<{
+        Off: -1,
+        Fatal: 0,
+        Error: 1,
+        Warn: 2,
+        Info: 3,
+        Debug: 4,
+        Trace: 5,
+    }>
 
 }

@@ -1,4 +1,4 @@
-import {CommandRegistrar} from "@levilamina";
+import {CommandParamKind, CommandRegistrar} from "@levilamina";
 import {CommandOrigin, CommandOriginType, Player} from "@minecraft";
 
 

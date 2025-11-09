@@ -1,9 +1,9 @@
 declare module "@minecraft" {
-    export const CommandParameterOption: CommandParameterOption;
-    export type CommandParameterOption = NativeEnum<[
-        "None",
-        "EnumAutocompleteExpansion",
-        "HasSemanticConstraint",
-        "EnumAsChainedCommand"
-    ]>;
+    export const enum CommandParameterOption {
+        // $name(): string;
+        None = 0,
+        EnumAutocompleteExpansion = 1 << 0,
+        HasSemanticConstraint = 1 << 1,
+        EnumAsChainedCommand = 1 << 2,
+    }
 }
