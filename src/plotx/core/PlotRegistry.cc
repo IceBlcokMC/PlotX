@@ -69,7 +69,7 @@ void PlotRegistry::_loadAdmins(ll::io::Logger& logger) {
     }
 
     auto parsed = nlohmann::json::parse(*admins);
-    // TODO: v1.4.1 框架反射系统无法正常处理此容器类型反射，修复后迁移到反射系统
+    // TODO: v1.4.1 & v1.7.0 框架反射系统无法正常处理此容器类型反射，修复后迁移到反射系统
     // https://github.com/LiteLDev/LeviLamina/issues/1764
     // reflection::json2struct(impl_->admins_, parsed);
     impl_->admins_.clear();
@@ -77,7 +77,7 @@ void PlotRegistry::_loadAdmins(ll::io::Logger& logger) {
     for (auto const& rawUuid : parsed) {
         auto const& str = static_cast<std::string const&>(rawUuid);
         if (auto uuid = mce::UUID::fromString(str); uuid != mce::UUID::EMPTY()) {
-            impl_->admins_.emplace(std::move(uuid));
+            impl_->admins_.emplace(uuid);
         } else {
             logger.warn("Invalid admin UUID: {}", str);
         }
