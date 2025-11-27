@@ -1,20 +1,23 @@
 #pragma once
-#include "mc/platform/UUID.h"
 #include "model/StorageModel.hpp"
-#include "nlohmann/json_fwd.hpp"
 #include "plotx/Global.hpp"
-#include "plotx/infra/DirtyCounter.hpp"
-#include "plotx/infra/IdAllocator.hpp"
+
+#include "nlohmann/json_fwd.hpp"
 #include "plotx/math/PlotCoord.hpp"
+
 #include <concepts>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
+namespace mce {
+class UUID;
+}
 
 namespace plotx {
 
+class PlotCoord;
 
 /**
  * @brief 地皮句柄，对地皮数据的操作接口
@@ -26,8 +29,11 @@ class PlotHandle {
 public:
     PLOTX_DISALLOW_COPY(PlotHandle);
 
-    PXAPI explicit PlotHandle();
-    PXAPI explicit PlotHandle(PlotModel record);
+    PXNDAPI explicit PlotHandle(PlotModel record); // for PlotRegistry
+
+    PXNDAPI explicit PlotHandle(int x, int z, mce::UUID const& owner);
+    PXNDAPI explicit PlotHandle(PlotCoord const& coord, mce::UUID const& owner);
+
     PXAPI ~PlotHandle();
 
     template <typename... Args>
@@ -36,9 +42,11 @@ public:
         return std::make_shared<PlotHandle>(std::forward<Args>(args)...);
     }
 
-    PXAPI DirtyCounter& getDirtyCounter();
-
-    PXAPI DirtyCounter const& getDirtyCounter() const;
+    /**
+     * 标记数据已修改
+     * @note 一般情况下，setXXX 的API内部都会自动标记数据修改，无需手动标记
+     */
+    PXAPI void markDirty();
 
     PXAPI PlotCoord const& getCoord() const;
 
@@ -48,15 +56,13 @@ public:
 
     PXNDAPI std::string const& getName() const;
 
-    PXAPI void setName(std::string const& name);
+    PXAPI void setName(std::string name);
 
-    PXNDAPI bool isSale() const;
+    PXNDAPI bool isForSale() const;
 
-    PXAPI void setSale(bool sale);
+    PXNDAPI int getSellingPrice() const;
 
-    PXNDAPI int getPrice() const;
-
-    PXAPI void setPrice(int price);
+    PXAPI void setSellingPrice(int price);
 
     PXNDAPI bool isMember(mce::UUID const& member) const;
 

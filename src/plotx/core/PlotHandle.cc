@@ -1,16 +1,19 @@
 #include "PlotHandle.hpp"
-#include "mc/platform/UUID.h"
 #include "model/StorageModel.hpp"
-#include "nlohmann/json.hpp"
-#include "nlohmann/json_fwd.hpp"
 #include "plotx/infra/DirtyCounter.hpp"
+#include "plotx/infra/IdAllocator.hpp"
 #include "plotx/infra/Reflection.hpp"
 #include "plotx/math/PlotCoord.hpp"
+
+#include "mc/platform/UUID.h"
+
+#include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
+
 #include <algorithm>
 #include <string>
 #include <utility>
 #include <vector>
-
 
 namespace plotx {
 
@@ -20,73 +23,89 @@ struct PlotHandle::Impl {
     IdAllocator  commentId_{};
 
     // 缓存
-    PlotCoord                        coord_{};
-    mutable std::optional<mce::UUID> owner_{};
-};
+    PlotCoord                        coordCache_{};
+    mutable std::optional<mce::UUID> ownerCache_{};
 
-
-PlotHandle::PlotHandle() : impl(std::make_unique<Impl>()) {};
-PlotHandle::PlotHandle(PlotModel record) : impl(std::make_unique<Impl>()) {
-    impl->data_  = std::move(record);
-
-    if (!impl->data_.comments_.empty()) {
-        // 初始化评论ID分配器
+    void initIdAllocator() {
+        if (data_.comments_.empty()) {
+            return;
+        }
         uint32_t max = 0;
-        for (auto const& comment : impl->data_.comments_) {
+        for (auto const& comment : data_.comments_) {
             if (comment.id_ > max) {
                 max = comment.id_;
             }
         }
-        impl->commentId_.reset(++max);
+        commentId_.reset(++max);
     }
+    void initCache() {
+        coordCache_ = PlotCoord{data_.x, data_.z};
+        if (!ownerCache_) {
+            if (auto uuid = mce::UUID::fromString(data_.owner_); uuid != mce::UUID::EMPTY()) {
+                ownerCache_ = uuid;
+            }
+        }
+    }
+    void init() {
+        initIdAllocator();
+        initCache();
+    }
+};
+
+
+PlotHandle::PlotHandle(PlotModel record) : impl(std::make_unique<Impl>()) {
+    impl->data_ = std::move(record);
+    impl->init();
 }
+PlotHandle::PlotHandle(int x, int z, mce::UUID const& owner) : impl(std::make_unique<Impl>()) {
+    impl->data_.x      = x;
+    impl->data_.z      = z;
+    impl->data_.owner_ = owner.asString();
+    impl->ownerCache_  = owner;
+    impl->initCache();
+}
+PlotHandle::PlotHandle(PlotCoord const& coord, mce::UUID const& owner) : PlotHandle(coord.x, coord.z, owner) {}
 
 PlotHandle::~PlotHandle() = default;
 
-DirtyCounter& PlotHandle::getDirtyCounter() { return impl->dirty_; }
-
-DirtyCounter const& PlotHandle::getDirtyCounter() const { return impl->dirty_; }
-
-PlotCoord const& PlotHandle::getCoord() const { return impl->coord_; }
+void             PlotHandle::markDirty() { impl->dirty_.inc(); }
+PlotCoord const& PlotHandle::getCoord() const { return impl->coordCache_; }
 
 mce::UUID const& PlotHandle::getOwner() const {
-    if (impl->owner_.has_value()) {
-        return *impl->owner_;
+    if (impl->ownerCache_.has_value()) [[likely]] {
+        return *impl->ownerCache_;
     }
-    impl->owner_ = mce::UUID::fromString(impl->data_.owner_);
-    return *impl->owner_;
+    impl->ownerCache_ = mce::UUID::fromString(impl->data_.owner_);
+    return *impl->ownerCache_;
 }
 
 void PlotHandle::setOwner(mce::UUID const& owner) {
-    impl->owner_       = owner; // cache the value
+    impl->ownerCache_  = owner; // cache the value
     impl->data_.owner_ = owner.asString();
-    impl->dirty_.inc();
+    markDirty();
 }
 
 std::string const& PlotHandle::getName() const { return impl->data_.name_; }
 
-void PlotHandle::setName(std::string const& name) {
-    impl->data_.name_ = name;
-    impl->dirty_.inc();
+void PlotHandle::setName(std::string name) {
+    impl->data_.name_ = std::move(name);
+    markDirty();
 }
 
-bool PlotHandle::isSale() const { return impl->data_.isSale_; }
+bool PlotHandle::isForSale() const { return impl->data_.sellingPrice_ != NotForSale; }
 
-void PlotHandle::setSale(bool sale) {
-    impl->data_.isSale_ = sale;
-    impl->dirty_.inc();
-}
+int PlotHandle::getSellingPrice() const { return impl->data_.sellingPrice_; }
 
-int PlotHandle::getPrice() const { return impl->data_.price_; }
-
-void PlotHandle::setPrice(int price) {
-    impl->data_.price_ = price;
-    impl->dirty_.inc();
+void PlotHandle::setSellingPrice(int price) {
+    if (price < NotForSale) {
+        throw std::invalid_argument("sellingPrice must be >= 0, or NotForSale (-1) if not for sale");
+    }
+    impl->data_.sellingPrice_ = price;
+    markDirty();
 }
 
 bool PlotHandle::isMember(mce::UUID const& member) const {
-    return std::find(impl->data_.members_.begin(), impl->data_.members_.end(), member.asString())
-        != impl->data_.members_.end();
+    return std::ranges::find(impl->data_.members_, member.asString()) == impl->data_.members_.end();
 }
 
 std::vector<std::string> const& PlotHandle::getMembers() const { return impl->data_.members_; }
@@ -96,16 +115,16 @@ void PlotHandle::addMember(mce::UUID const& member) {
         return;
     }
     impl->data_.members_.push_back(member.asString());
-    impl->dirty_.inc();
+    markDirty();
 }
 
 void PlotHandle::removeMember(mce::UUID const& member) {
-    auto it = std::find(impl->data_.members_.begin(), impl->data_.members_.end(), member.asString());
+    auto it = std::ranges::find(impl->data_.members_, member.asString());
     if (it == impl->data_.members_.end()) {
         return;
     }
     impl->data_.members_.erase(it);
-    impl->dirty_.inc();
+    markDirty();
 }
 
 std::vector<CommentModel> const& PlotHandle::getComments() const { return impl->data_.comments_; }
@@ -114,19 +133,14 @@ std::vector<CommentModel> PlotHandle::getComments(mce::UUID const& author) const
     auto str = author.asString();
 
     std::vector<CommentModel> result;
-    std::copy_if(
-        impl->data_.comments_.begin(),
-        impl->data_.comments_.end(),
-        std::back_inserter(result),
-        [&str](auto const& c) { return c.author_ == str; }
-    );
+    std::ranges::copy_if(impl->data_.comments_, std::back_inserter(result), [&str](auto const& c) {
+        return c.author_ == str;
+    });
     return result;
 }
 
 std::optional<CommentModel> PlotHandle::getComment(CommentID id) const {
-    auto it = std::find_if(impl->data_.comments_.begin(), impl->data_.comments_.end(), [&id](auto const& c) {
-        return c.id_ == id;
-    });
+    auto it = std::ranges::find_if(impl->data_.comments_, [&id](auto const& c) { return c.id_ == id; });
     if (it == impl->data_.comments_.end()) {
         return std::nullopt;
     }
@@ -141,19 +155,17 @@ CommentID PlotHandle::addComment(mce::UUID const& author, std::string const& con
         content,
         "time" // TODO: get current time
     );
-    impl->dirty_.inc();
+    markDirty();
     return id;
 }
 
 void PlotHandle::removeComment(CommentID id) {
-    auto it = std::find_if(impl->data_.comments_.begin(), impl->data_.comments_.end(), [&id](auto const& c) {
-        return c.id_ == id;
-    });
+    auto it = std::ranges::find_if(impl->data_.comments_, [&id](auto const& c) { return c.id_ == id; });
     if (it == impl->data_.comments_.end()) {
         return;
     }
     impl->data_.comments_.erase(it);
-    impl->dirty_.inc();
+    markDirty();
 }
 
 
@@ -163,7 +175,7 @@ nlohmann::json PlotHandle::dump() const { return reflection::struct2json(impl->d
 std::shared_ptr<PlotHandle> PlotHandle::load(nlohmann::json& json) {
     auto record = PlotModel{};
     reflection::json2structVersionPatch(json, record);
-    return PlotHandle::make(std::move(record));
+    return make(std::move(record));
 }
 
 } // namespace plotx

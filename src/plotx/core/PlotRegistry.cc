@@ -1,19 +1,23 @@
 #include "PlotRegistry.hpp"
-#include "ll/api/data/KeyValueDB.h"
 #include "model/StorageModel.hpp"
-#include "nlohmann/json.hpp"
-#include "nlohmann/json_fwd.hpp"
 #include "plotx/PlotX.hpp"
 #include "plotx/core/PlotHandle.hpp"
-#include "plotx/core/PlotRegistry.hpp"
 #include "plotx/infra/IntEncoder.hpp"
 #include "plotx/infra/Reflection.hpp"
+#include "plotx/math/PlotCoord.hpp"
+
+#include "ll/api/data/KeyValueDB.h"
+#include "ll/api/io/Logger.h"
+#include "mc/platform/UUID.h"
+
+#include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
+
 #include <algorithm>
 #include <filesystem>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
-
 
 namespace plotx {
 
@@ -124,6 +128,72 @@ void PlotRegistry::removeAdmin(mce::UUID const& uuid) {
     }
     std::unique_lock lock{impl_->mutex_};
     impl_->admins_.erase(uuid);
+}
+bool PlotRegistry::hasPlot(int x, int z) const {
+    std::shared_lock lock{impl_->mutex_};
+    return impl_->plots_.contains(IntEncoder::encode(x, z));
+}
+bool PlotRegistry::hasPlot(PlotCoord const& coord) const {
+    if (!coord.isValid()) {
+        return false;
+    }
+    return hasPlot(coord.x, coord.z);
+}
+std::shared_ptr<PlotHandle> PlotRegistry::getPlot(int x, int z) const {
+    std::shared_lock lock{impl_->mutex_};
+    auto             iter = impl_->plots_.find(IntEncoder::encode(x, z));
+    if (iter != impl_->plots_.end()) {
+        return iter->second;
+    }
+    return nullptr;
+}
+std::shared_ptr<PlotHandle> PlotRegistry::getPlot(PlotCoord const& coord) const {
+    if (!coord.isValid()) {
+        return nullptr;
+    }
+    return getPlot(coord.x, coord.z);
+}
+bool PlotRegistry::addPlot(std::shared_ptr<PlotHandle> handle) {
+    if (!handle || hasPlot(handle->getCoord().x, handle->getCoord().z)) {
+        return false;
+    }
+    std::unique_lock lock{impl_->mutex_};
+
+    handle->markDirty(); // 新地皮，存储前标记脏数据避免持久化失败
+    auto coord = handle->getCoord();
+    impl_->plots_.emplace(IntEncoder::encode(coord.x, coord.z), std::move(handle));
+    return true;
+}
+bool PlotRegistry::removePlot(int x, int z) {
+    std::unique_lock lock{impl_->mutex_};
+    auto             iter = impl_->plots_.find(IntEncoder::encode(x, z));
+    if (iter == impl_->plots_.end()) {
+        return false;
+    }
+    impl_->plots_.erase(iter);
+    return true;
+}
+bool PlotRegistry::removePlot(PlotCoord const& coord) {
+    if (!coord.isValid()) {
+        return false;
+    }
+    return removePlot(coord.x, coord.z);
+}
+bool PlotRegistry::removePlot(std::shared_ptr<PlotHandle> const& handle) { return removePlot(handle->getCoord()); }
+
+std::shared_ptr<PlotHandle> PlotRegistry::newPlot(PlotCoord const& coord, mce::UUID const& owner) {
+    return newPlot(coord.x, coord.z, owner);
+}
+
+std::shared_ptr<PlotHandle> PlotRegistry::newPlot(int x, int z, mce::UUID const& owner) {
+    if (hasPlot(x, z)) {
+        return nullptr;
+    }
+    auto ptr = PlotHandle::make(x, z, owner);
+    if (!ptr) {
+        return nullptr;
+    }
+    return addPlot(ptr) ? ptr : nullptr;
 }
 
 
