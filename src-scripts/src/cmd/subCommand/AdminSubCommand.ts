@@ -3,6 +3,7 @@ import { CommandOriginType, UUID } from "@minecraft";
 
 import { ArgType } from "../../utils/TypeUtils";
 import { tr } from "../../i18n/I18n.js";
+import { PlotRegistry } from "@plotx";
 
 const kPlotXAdminEnumKey = "PlotXAdminActions";
 const kPlotXAdminEnumValues = [
@@ -13,10 +14,30 @@ const kPlotXAdminEnumValues = [
 type AdminActionEnumNameType = (typeof kPlotXAdminEnumValues)[number][0];
 
 function handleAction(type: AdminActionEnumNameType, target: UUID) {
+    const registry = PlotRegistry.getInstance();
+    if (!registry) {
+        throw new Error("Plot registry is not initialized");
+    }
+    const logger = ScriptMod.current().getLogger();
     switch (type) {
-        case "add":
-        // TODO: bind PlotRegistry API, add player to admin list
-        case "remove":
+        case "add": {
+            if (registry.isAdmin(target)) {
+                logger.error(tr("The player {} is already an admin", PlayerInfo.fromUuid(target)?.name ?? "<unknown>"));
+                return;
+            }
+            registry.addAdmin(target);
+            logger.info(tr("The player {} is now an admin", PlayerInfo.fromUuid(target)?.name ?? "<unknown>"));
+            break;
+        }
+        case "remove": {
+            if (!registry.isAdmin(target)) {
+                logger.error(tr("The player {} is not an admin", PlayerInfo.fromUuid(target)?.name ?? "<unknown>"));
+                return;
+            }
+            registry.removeAdmin(target);
+            logger.info(tr("The player {} is no longer an admin", PlayerInfo.fromUuid(target)?.name ?? "<unknown>"));
+            break;
+        }
         default:
             throw new Error(`Unknown action ${type}`);
     }
