@@ -5,7 +5,7 @@ namespace plotx {
 
 
 struct Config {
-    int version{1};
+    int version{2};
 
     struct {
         int plotWidth{128};     // 地皮大小(长宽)
@@ -16,7 +16,7 @@ struct Config {
         std::string fillBlock    = "minecraft:dirt";             // 地皮填充方块
         std::string roadBlock    = "minecraft:birch_planks";     // 道路方块
         std::string borderBlock  = "minecraft:stone_block_slab"; // 地皮边框方块
-        std::string biome        = "plains";                     // 地皮世界生物群系
+        std::string biome        = "minecraft:plains";           // 地皮世界生物群系
     } generator;
 };
 
