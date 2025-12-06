@@ -135,15 +135,6 @@ void PlotXCommand::setup() {
         MainGUI::sendTo(player);
     });
 
-    // plotx mgr
-    handle.overload().text("mgr").execute([](CommandOrigin const& origin, CommandOutput& output) {
-        if (!ensurePlayerExecute(origin, output)) {
-            return;
-        }
-        auto& player = GET_ENTITY_AND_CAST_PLAYER(origin);
-        // TODO: open manager gui
-    });
-
     // plotx teleport unowned_plot
     handle.overload()
         .text("teleport")

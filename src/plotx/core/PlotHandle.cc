@@ -156,6 +156,15 @@ CommentID PlotHandle::addComment(mce::UUID const& author, std::string const& con
     markDirty();
     return id;
 }
+bool PlotHandle::updateCommentContent(CommentID id, std::string content) {
+    auto it = std::ranges::find_if(impl->data_.comments_, [&id](auto const& c) { return c.id_ == id; });
+    if (it == impl->data_.comments_.end()) {
+        return false;
+    }
+    it->content_ = std::move(content);
+    markDirty();
+    return true;
+}
 
 void PlotHandle::removeComment(CommentID id) {
     auto it = std::ranges::find_if(impl->data_.comments_, [&id](auto const& c) { return c.id_ == id; });

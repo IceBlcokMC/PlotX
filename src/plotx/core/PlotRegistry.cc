@@ -188,6 +188,29 @@ bool PlotRegistry::removePlot(PlotCoord const& coord) {
 }
 bool PlotRegistry::removePlot(std::shared_ptr<PlotHandle> const& handle) { return removePlot(handle->getCoord()); }
 
+std::vector<std::shared_ptr<PlotHandle>> PlotRegistry::getPlots(mce::UUID const& owner) const {
+    std::shared_lock lock{impl_->mutex_};
+
+    std::vector<std::shared_ptr<PlotHandle>> result{};
+    for (auto const& [k, v] : impl_->plots_) {
+        if (v->isOwner(owner)) {
+            result.emplace_back(v);
+        }
+    }
+    return result;
+}
+std::vector<std::shared_ptr<PlotHandle>> PlotRegistry::getSellingPlots() const {
+    std::shared_lock lock{impl_->mutex_};
+
+    std::vector<std::shared_ptr<PlotHandle>> result{};
+    for (auto const& [k, v] : impl_->plots_) {
+        if (v->isForSale()) {
+            result.emplace_back(v);
+        }
+    }
+    return result;
+}
+
 std::optional<PlotCoord> PlotRegistry::findUnownedPlot(int x, int z) const {
     std::shared_lock lock{impl_->mutex_};
     if (auto node = impl_->tree_.findNearestUnmarkedNodeFromRoot({x, z})) {

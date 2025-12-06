@@ -11,6 +11,17 @@ struct PlotManagerGUI {
     PlotManagerGUI() = delete;
 
     static void sendTo(Player& player, std::shared_ptr<PlotHandle> handle);
+
+private:
+    static void handleEditName(Player& player, std::shared_ptr<PlotHandle> handle);
+
+    static void handleEditSellStatus(Player& player, std::shared_ptr<PlotHandle> handle);
+    static void sellPlotOrEditSellPrice(Player& player, std::shared_ptr<PlotHandle> handle, bool edit);
+
+    static void handleEditMember(Player& player, std::shared_ptr<PlotHandle> handle);
+    static void chooseAddType(Player& player, std::shared_ptr<PlotHandle> handle);
+    static void addMemberFromOnline(Player& player, std::shared_ptr<PlotHandle> handle);
+    static void addMemberFromOffline(Player& player, std::shared_ptr<PlotHandle> handle);
 };
 
 } // namespace plotx

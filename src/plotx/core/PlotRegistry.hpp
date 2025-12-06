@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <unordered_set>
 
 
 namespace plotx {
@@ -50,6 +51,10 @@ public:
     PXNDAPI bool removePlot(int x, int z);
     PXNDAPI bool removePlot(PlotCoord const& coord);
     PXNDAPI bool removePlot(std::shared_ptr<PlotHandle> const& handle);
+
+    std::vector<std::shared_ptr<PlotHandle>> getPlots(mce::UUID const& owner) const;
+
+    std::vector<std::shared_ptr<PlotHandle>> getSellingPlots() const;
 
     /**
      * 查找相对于中心点最近的无主地皮

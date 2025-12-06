@@ -1,9 +1,16 @@
 #include "PlotManagerGui.hpp"
 
+#include "PlayerPicker.hpp"
+#include "PlotCommentGui.hpp"
 #include "plotx/PlotX.hpp"
+#include "plotx/core/PlotController.hpp"
 #include "plotx/core/PlotHandle.hpp"
 #include "plotx/core/PlotRegistry.hpp"
+#include "plotx/utils/MessageUtils.hpp"
 
+
+#include <ll/api/form/CustomForm.h>
+#include <ll/api/form/ModalForm.h>
 #include <ll/api/form/SimpleForm.h>
 #include <ll/api/i18n/I18n.h>
 #include <ll/api/service/PlayerInfo.h>
@@ -41,9 +48,181 @@ void PlotManagerGUI::sendTo(Player& player, std::shared_ptr<PlotHandle> handle) 
     );
     if (!isGuest) {
         f.appendButton("传送到此地皮"_trl(localeCode), "textures/ui/move", "path", [handle](Player& player) {
-            // TODO: impl
+            PlotX::getInstance().getController()->teleportToPlot(player, handle);
         });
     }
+    if (isOwner || isAdmin) {
+        f.appendButton("权限管理"_trl(localeCode), "textures/ui/gear", "path", [handle](Player& player) {
+            // TODO: impl
+        });
+        f.appendButton("编辑名称"_trl(localeCode), "textures/ui/book_edit_default", "path", [handle](Player& player) {
+            handleEditName(player, handle);
+        });
+        f.appendButton("地皮出售"_trl(localeCode), "textures/ui/MCoin", "path", [handle](Player& player) {
+            handleEditSellStatus(player, handle);
+        });
+        f.appendButton("成员管理"_trl(localeCode), "textures/ui/share_microsoft", "path", [handle](Player& player) {
+            handleEditMember(player, handle);
+        });
+    }
+    f.appendButton("地皮评论"_trl(localeCode), "textures/ui/icon_sign", "path", [handle](Player& player) {
+        PlotCommentGUI::sendTo(player, handle);
+    });
+    f.sendTo(player);
+}
+
+void PlotManagerGUI::handleEditName(Player& player, std::shared_ptr<PlotHandle> handle) {
+    auto localeCode = player.getLocaleCode();
+
+    auto f = ll::form::CustomForm{};
+    f.setTitle("PlotX - 编辑地皮名称"_trl(localeCode));
+    f.appendInput("name", "地皮名称"_trl(localeCode), "string", handle->getName());
+    f.sendTo(
+        player,
+        [handle     = std::move(handle),
+         localeCode = std::move(localeCode)](Player& player, ll::form::CustomFormResult const& data, auto) {
+            if (!data) {
+                return;
+            }
+            auto name = std::get<std::string>(data->at("name"));
+            if (PlotX::getInstance().getController()->changePlotName(player, handle, std::move(name))) {
+                sendTo(player, handle);
+            }
+        }
+    );
+}
+void PlotManagerGUI::handleEditSellStatus(Player& player, std::shared_ptr<PlotHandle> handle) {
+    auto localeCode = player.getLocaleCode();
+
+    auto f = ll::form::SimpleForm{};
+    f.setTitle("PlotX - 地皮出售"_trl(localeCode));
+
+    if (handle->isForSale()) {
+        f.setContent("当前地皮正在出售，价格: {}"_trl(localeCode, handle->getSellingPrice()));
+        f.appendButton("更改价格"_trl(localeCode), "textures/ui/book_edit_default", "path", [handle](Player& player) {
+            sellPlotOrEditSellPrice(player, handle, true);
+        });
+        f.appendButton("取消出售"_trl(localeCode), "textures/ui/cancel", "path", [handle](Player& player) {
+            handle->setSellingPrice(NotForSale);
+            handleEditSellStatus(player, handle);
+        });
+    } else {
+        f.setContent("当前地皮未出售"_trl(localeCode));
+        f.appendButton("出售地皮"_trl(localeCode), "textures/ui/icon_minecoin_9x9", "path", [handle](Player& player) {
+            sellPlotOrEditSellPrice(player, handle, false);
+        });
+    }
+    f.appendButton("返回"_trl(localeCode), "textures/ui/icon_import", "path", [handle](Player& player) {
+        sendTo(player, handle);
+    });
+    f.sendTo(player);
+}
+void PlotManagerGUI::sellPlotOrEditSellPrice(Player& player, std::shared_ptr<PlotHandle> handle, bool edit) {
+    auto localeCode = player.getLocaleCode();
+
+    auto f = ll::form::CustomForm{};
+    f.setTitle("PlotX - 地皮出售"_trl(localeCode));
+    f.appendInput("price", "出售价格"_trl(localeCode), "number", edit ? std::to_string(handle->getSellingPrice()) : "");
+    f.sendTo(player, [handle](Player& player, ll::form::CustomFormResult const& data, auto) {
+        if (!data) {
+            return;
+        }
+        auto priceStr = std::get<std::string>(data->at("price"));
+        try {
+            int price = std::stoll(priceStr);
+            if (price < 0) {
+                message_utils::sendText<message_utils::LogLevel::Error>(
+                    player,
+                    "价格不能为负数"_trl(player.getLocaleCode())
+                );
+                return;
+            }
+            handle->setSellingPrice(price);
+        } catch (...) {
+            message_utils::sendText<message_utils::LogLevel::Error>(player, "无效的价格"_trl(player.getLocaleCode()));
+        }
+    });
+}
+void PlotManagerGUI::handleEditMember(Player& player, std::shared_ptr<PlotHandle> handle) {
+    auto localeCode = player.getLocaleCode();
+
+    auto f = ll::form::SimpleForm{};
+    f.setTitle("PlotX - 成员管理"_trl(localeCode));
+    f.setContent("点击成员以进行移除, 或点击按钮添加成员"_trl(localeCode));
+    f.appendButton("返回"_trl(localeCode), "textures/ui/icon_import", "path", [handle](Player& player) {
+        sendTo(player, handle);
+    });
+    f.appendButton("添加成员"_trl(localeCode), "textures/ui/color_plus", "path", [handle](Player& player) {
+        chooseAddType(player, handle);
+    });
+
+    auto& members = handle->getMembers();
+    auto& infoDb  = ll::service::PlayerInfo::getInstance();
+    for (auto& member : members) {
+        auto uuid = mce::UUID::fromString(member);
+        auto info = infoDb.fromUuid(uuid);
+        f.appendButton(info ? info->name : member, [handle, uuid](Player& player) {
+            handle->removeMember(uuid);
+            handleEditMember(player, handle);
+        });
+    }
+    f.sendTo(player);
+}
+void PlotManagerGUI::chooseAddType(Player& player, std::shared_ptr<PlotHandle> handle) {
+    auto localeCode = player.getLocaleCode();
+
+    ll::form::ModalForm{
+        "PlotX - 添加成员"_trl(localeCode),
+        "选择添加方式"_trl(localeCode),
+        "添加在线玩家"_trl(localeCode),
+        "添加离线玩家"_trl(localeCode)
+    }
+        .sendTo(player, [handle](Player& player, ll::form::ModalFormResult const& result, auto) {
+            if (!result) {
+                return;
+            }
+            if ((bool)result.value()) {
+                addMemberFromOnline(player, handle);
+            } else {
+                addMemberFromOffline(player, handle);
+            }
+        });
+}
+void PlotManagerGUI::addMemberFromOnline(Player& player, std::shared_ptr<PlotHandle> handle) {
+    PlayerPicker::sendTo(player, [handle](Player& player, mce::UUID picked) {
+        handle->addMember(picked);
+        handleEditMember(player, handle);
+    });
+}
+void PlotManagerGUI::addMemberFromOffline(Player& player, std::shared_ptr<PlotHandle> handle) {
+    auto localeCode = player.getLocaleCode();
+
+    auto f = ll::form::CustomForm{};
+    f.setTitle("PlotX - 添加成员"_trl(localeCode));
+    f.appendInput("name", "玩家名"_trl(localeCode), "请输入要添加的玩家名"_trl(localeCode));
+    f.sendTo(player, [handle](Player& player, ll::form::CustomFormResult const& data, auto) {
+        if (!data) {
+            return;
+        }
+        auto name = std::get<std::string>(data->at("name"));
+        if (name.empty()) {
+            message_utils::sendText<message_utils::LogLevel::Error>(
+                player,
+                "玩家名不能为空"_trl(player.getLocaleCode())
+            );
+            return;
+        }
+        auto entry = ll::service::PlayerInfo::getInstance().fromName(name);
+        if (!entry) {
+            message_utils::sendText<message_utils::LogLevel::Error>(
+                player,
+                "未找到玩家 {} 的信息"_trl(player.getLocaleCode(), name)
+            );
+            return;
+        }
+        handle->addMember(entry->uuid);
+        handleEditMember(player, handle);
+    });
 }
 
 

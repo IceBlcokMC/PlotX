@@ -82,6 +82,8 @@ public:
 
     PXAPI CommentID addComment(mce::UUID const& author, std::string const& content);
 
+    PXAPI bool updateCommentContent(CommentID id, std::string content);
+
     PXAPI void removeComment(CommentID id);
 
     // helper

@@ -18,6 +18,10 @@ struct Config {
         std::string borderBlock  = "minecraft:stone_block_slab"; // 地皮边框方块
         std::string biome        = "minecraft:plains";           // 地皮世界生物群系
     } generator;
+
+    struct {
+        int sellPrice{100}; // 地皮出售价格
+    } plot;
 };
 
 

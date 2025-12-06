@@ -1,8 +1,13 @@
 #include "MainGUI.hpp"
+#include "PlotManagerGui.hpp"
+#include "PlotPicker.hpp"
+#include "PlotShopGui.hpp"
+#include "plotx/PlotX.hpp"
+#include "plotx/core/PlotController.hpp"
 
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
-#include "plotx/PlotX.hpp"
+
 
 namespace plotx {
 
@@ -16,24 +21,23 @@ void MainGUI::sendTo(Player& player) {
 
     if (player.getDimensionId() == PlotX::getDimensionId()) {
         fm.appendButton("前往主世界"_trl(localeCode), "textures/ui/realmsIcon", "path", [](Player& pl) {
-            // TODO: impl
+            PlotX::getInstance().getController()->switchPlayerDimension(pl, true);
         });
     } else {
         fm.appendButton("前往地皮世界"_trl(localeCode), "textures/ui/realmsIcon", "path", [](Player& pl) {
-            // TODO: impl
+            PlotX::getInstance().getController()->switchPlayerDimension(pl, false);
         });
     }
     fm.appendButton("管理脚下地皮"_trl(localeCode), "textures/ui/icon_recipe_item", "path", [](Player& pl) {
-        // TODO: impl
+        PlotX::getInstance().getController()->sendPlayerCurrentPlot(pl);
     });
     fm.appendButton("管理地皮"_trl(localeCode), "textures/ui/icon_recipe_nature", "path", [](Player& pl) {
-        // TODO: impl
+        PlotPicker::sendTo(pl, [](Player& player, std::shared_ptr<PlotHandle> handle) {
+            PlotManagerGUI::sendTo(player, handle);
+        });
     });
     fm.appendButton("地皮商店"_trl(localeCode), "textures/ui/store_home_icon", "path", [](Player& pl) {
-        // TODO: impl
-    });
-    fm.appendButton("自定义设置"_trl(localeCode), "textures/ui/gear", "path", [](Player& pl) {
-        // TODO: impl
+        PlotShopGUI::sendTo(pl);
     });
     fm.appendButton("关闭"_trl(localeCode));
     fm.sendTo(player);

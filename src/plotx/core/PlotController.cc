@@ -1,12 +1,15 @@
 #include "PlotController.hpp"
 
+#include "PlotHandle.hpp"
 #include "PlotRegistry.hpp"
 #include "plotx/PlotX.hpp"
 #include "plotx/math/PlotCoord.hpp"
 #include "plotx/utils/MessageUtils.hpp"
 
 #include "ll/api/i18n/I18n.h"
+#include "plotx/gui/BuyPlotGui.hpp"
 #include "plotx/gui/PlotManagerGui.hpp"
+#include "plotx/utils/StringUtils.hpp"
 
 namespace plotx {
 
@@ -31,6 +34,9 @@ void PlotController::teleportUnownedPlot(Player& player) const {
         );
     }
 }
+void PlotController::teleportToPlot(Player& player, std::shared_ptr<PlotHandle> handle) {
+    // TODO
+}
 void PlotController::sendPlayerCurrentPlot(Player& player) const {
     auto coord = PlotCoord{player.getPosition()};
     if (!coord.isValid()) {
@@ -43,7 +49,7 @@ void PlotController::sendPlayerCurrentPlot(Player& player) const {
     if (impl->registry.hasPlot(coord)) {
         PlotManagerGUI::sendTo(player, impl->registry.getPlot(coord));
     } else {
-        // TODO: send buy gui
+        BuyPlotGUI::sendTo(player, std::move(coord));
     }
 }
 
@@ -53,6 +59,21 @@ void PlotController::switchPlayerDimension(Player& player, bool toOverworld) con
     } else {
         // TODO: teleport to plotx dimension
     }
+}
+bool PlotController::changePlotName(Player& player, std::shared_ptr<PlotHandle> handle, std::string newName) {
+    if (string_utils::length(newName) > 32) {
+        message_utils::sendText<message_utils::LogLevel::Error>(player, "地皮名称过长"_trl(player.getLocaleCode()));
+        return false;
+    }
+    handle->setName(newName);
+    return true;
+}
+
+void PlotController::claimPlot(Player& player, PlotCoord coord) {
+    // TODO: impl
+}
+void PlotController::buyPlotFromPlayer(Player& player, std::shared_ptr<PlotHandle> handle) {
+    // TODO
 }
 
 
