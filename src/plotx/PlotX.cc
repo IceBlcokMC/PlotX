@@ -1,5 +1,6 @@
 #include "PlotX.hpp"
 
+#include "command/PlotXCommand.hpp"
 #include "ll/api/Config.h"
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/io/LogLevel.h"
@@ -53,6 +54,8 @@ bool PlotX::load() {
 bool PlotX::enable() {
     impl_->plotEventDriven_ = std::make_unique<PlotEventDriven>();
 
+    PlotXCommand::setup();
+
     return true;
 }
 
@@ -64,8 +67,8 @@ bool PlotX::disable() {
 }
 
 
-ll::mod::NativeMod&                   PlotX::getSelf() const { return impl_->self_; }
-ll::io::Logger&                       PlotX::getLogger() const { return impl_->self_.getLogger(); }
+ll::mod::NativeMod& PlotX::getSelf() const { return impl_->self_; }
+ll::io::Logger&     PlotX::getLogger() const { return impl_->self_.getLogger(); }
 
 PlotRegistry* PlotX::getPlotRegistry() const { return impl_->registry_.get(); }
 
