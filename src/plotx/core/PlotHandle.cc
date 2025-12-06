@@ -70,6 +70,7 @@ PlotHandle::~PlotHandle() = default;
 
 void             PlotHandle::markDirty() { impl->dirty_.inc(); }
 PlotCoord const& PlotHandle::getCoord() const { return impl->coordCache_; }
+bool             PlotHandle::isOwner(mce::UUID const& uuid) const { return uuid == getOwner(); }
 
 mce::UUID const& PlotHandle::getOwner() const {
     if (impl->ownerCache_.has_value()) [[likely]] {

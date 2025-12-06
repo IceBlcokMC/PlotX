@@ -50,6 +50,8 @@ public:
 
     PXAPI PlotCoord const& getCoord() const;
 
+    PXNDAPI bool isOwner(mce::UUID const& uuid) const;
+
     PXNDAPI mce::UUID const& getOwner() const;
 
     PXAPI void setOwner(mce::UUID const& owner);
