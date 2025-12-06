@@ -1,5 +1,6 @@
 #pragma once
 
+class Player;
 class CommandOutput;
 class CommandOrigin;
 
@@ -12,6 +13,7 @@ struct PlotXCommand {
 
     static bool ensureConsoleExecute(CommandOrigin const& origin, CommandOutput& output);
     static bool ensurePlayerExecute(CommandOrigin const& origin, CommandOutput& output);
+    static bool ensurePlayerInPlotDimension(Player& player, CommandOutput& output);
 };
 
 } // namespace plotx

@@ -126,7 +126,10 @@ void PlotXCommand::setup() {
             return;
         }
         auto& player = GET_ENTITY_AND_CAST_PLAYER(origin);
-        auto  coord  = PlotCoord{player.getPosition()};
+        if (!ensurePlayerInPlotDimension(player, output)) {
+            return;
+        }
+        auto coord = PlotCoord{player.getPosition()};
         if (!coord.isValid()) {
             output.error("您当前所在的位置不是地皮"_trl(player.getLocaleCode()));
             return;
@@ -162,6 +165,9 @@ void PlotXCommand::setup() {
                 return;
             }
             auto& player = GET_ENTITY_AND_CAST_PLAYER(origin);
+            if (!ensurePlayerInPlotDimension(player, output)) {
+                return;
+            }
             // TODO: impl
         });
 }
@@ -175,6 +181,13 @@ bool PlotXCommand::ensureConsoleExecute(CommandOrigin const& origin, CommandOutp
 bool PlotXCommand::ensurePlayerExecute(CommandOrigin const& origin, CommandOutput& output) {
     if (origin.getOriginType() != CommandOriginType::Player) {
         output.error("此命令仅允许玩家执行"_tr());
+        return false;
+    }
+    return true;
+}
+bool PlotXCommand::ensurePlayerInPlotDimension(Player& player, CommandOutput& output) {
+    if (player.getDimensionId() != PlotX::getDimensionId()) {
+        output.error("此命令仅允许在地皮维度执行"_tr());
         return false;
     }
     return true;
