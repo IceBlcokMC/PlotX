@@ -27,7 +27,7 @@ using BufferIndex   = int;
 // 索引公式：(x * ChunkWidth + z) * WorldTotalHeight + y
 [[nodiscard]] inline BufferIndex getIndex(int x, int y, int z) { return (x * ChunkWidth + z) * WorldTotalHeight + y; }
 
-template <HasXYZ_v T>
+template <concepts::HasXYZ T>
 [[nodiscard]] inline BufferIndex getIndex(T const& t) {
     return getIndex(t.x, t.y, t.z);
 }
