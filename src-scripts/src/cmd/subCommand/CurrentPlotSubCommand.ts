@@ -1,7 +1,7 @@
 import { CommandHandle, CommandRegistrar } from "@levilamina";
 import { CommandOriginType, Player } from "@minecraft";
 import { PlotCoord } from "@plotx";
-import { tr, trl } from "src/i18n/I18n";
+import { tr, trl } from "../../i18n/I18n";
 
 export function registerCurrentPlotSubCommand(registrar: CommandRegistrar, handle: CommandHandle) {
     handle

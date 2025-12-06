@@ -1,7 +1,7 @@
 import { CommandHandle, CommandParamKind, CommandRegistrar } from "@levilamina";
 import { CommandOriginType, Player } from "@minecraft";
 import { isMoreDimension } from "@plotx";
-import { tr, trl } from "src/i18n/I18n";
+import { tr, trl } from "../../i18n/I18n";
 
 const kTargetDimEnum = [
     ["overworld", 0],
