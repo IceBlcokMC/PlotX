@@ -9,10 +9,6 @@
 
 namespace plotx {
 
-namespace script {
-class EngineManager;
-class ScriptLoader;
-} // namespace script
 
 class PlotX {
     PlotX();
@@ -27,9 +23,6 @@ public:
     [[nodiscard]] ll::mod::NativeMod& getSelf() const;
 
     [[nodiscard]] ll::io::Logger& getLogger() const;
-
-    script::EngineManager*                getEngineManager() const;
-    std::shared_ptr<script::ScriptLoader> getScriptLoader() const;
 
 public:
     PXAPI static PlotX& getInstance();

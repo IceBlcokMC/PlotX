@@ -1,1 +1,0 @@
-export type ArgType<T extends (...args: any) => any, I extends keyof Parameters<T>> = Parameters<T>[I];
