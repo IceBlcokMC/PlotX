@@ -106,18 +106,10 @@ void PlotXCommand::setup() {
                 return;
             }
             auto& player = GET_ENTITY_AND_CAST_PLAYER(origin);
-            switch (param.target) {
-            case SwitchDimParam::TargetDim::Overworld:
-                player.teleport(
-                    player.getExpectedSpawnPosition(),
-                    player.getExpectedSpawnDimensionId(),
-                    player.getRotation()
-                );
-                break;
-            case SwitchDimParam::TargetDim::Plotx:
-                // TODO: impl
-                break;
-            }
+            PlotX::getInstance().getPlotController()->switchPlayerDimension(
+                player,
+                param.target == SwitchDimParam::TargetDim::Overworld
+            );
         }
     );
 #endif
@@ -131,13 +123,7 @@ void PlotXCommand::setup() {
         if (!ensurePlayerInPlotDimension(player, output)) {
             return;
         }
-        auto coord = PlotCoord{player.getPosition()};
-        if (!coord.isValid()) {
-            output.error("您当前所在的位置不是地皮"_trl(player.getLocaleCode()));
-            return;
-        }
-
-        // TODO: open gui
+        PlotX::getInstance().getPlotController()->sendPlayerCurrentPlot(player);
     });
 
     // plotx

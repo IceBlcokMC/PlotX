@@ -18,7 +18,14 @@ public:
     explicit PlotController(PlotRegistry& registry, PlotX& mod);
     ~PlotController();
 
-    void teleportUnownedPlot(Player& player);
+    void teleportUnownedPlot(Player& player) const;
+
+    void sendPlayerCurrentPlot(Player& player) const;
+
+    /**
+     * @param toOverworld true: overworld false: plotx
+     */
+    void switchPlayerDimension(Player& player, bool toOverworld) const;
 };
 
 } // namespace plotx
