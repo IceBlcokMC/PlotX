@@ -9,6 +9,7 @@
 
 #include <qjspp/runtime/JsException.hpp>
 #include <qjspp/runtime/Locker.hpp>
+#include <vector>
 
 namespace plotx::script {
 
@@ -21,6 +22,7 @@ struct EngineManager::Impl {
     std::shared_mutex                                              stlMutex_;
     std::atomic<EngineID>                                          next_;
     std::unordered_map<EngineID, std::unique_ptr<qjspp::JsEngine>> engines_;
+    std::vector<EngineID>                                          delayDestroyEngines_; // 延迟销毁的引擎
 };
 
 
@@ -30,11 +32,22 @@ EngineManager::EngineManager() : impl_(std::make_unique<Impl>()) {
     impl_->thread_ = std::thread([this] {
         while (!impl_->abort_.load()) {
             std::unique_lock lock{impl_->cvMutex_};
-            impl_->cv_.wait_for(lock, std::chrono::milliseconds(50), [this] { return impl_->abort_.load(); });
-            if (impl_->abort_.load()) {
-                break;
-            }
+            impl_->cv_.wait_for(lock, std::chrono::milliseconds(50), [this] {
+                return impl_->abort_.load() || !impl_->delayDestroyEngines_.empty();
+            });
+
+            if (impl_->abort_.load()) break;
+
+            // swap trick
+            std::vector<EngineID> toDelete;
+            toDelete.swap(impl_->delayDestroyEngines_);
             lock.unlock();
+
+            if (!toDelete.empty()) {
+                std::unique_lock stlLock{impl_->stlMutex_};
+                for (auto id : toDelete) impl_->engines_.erase(id);
+            }
+
             loop();
         }
     });
@@ -67,15 +80,14 @@ qjspp::JsEngine* EngineManager::newEngine() const noexcept {
 }
 
 bool EngineManager::destroyEngine(EngineID id) const {
-    std::unique_lock lock{impl_->stlMutex_};
-
-    auto iter = impl_->engines_.find(id);
-    if (iter != impl_->engines_.end()) {
-        impl_->engines_.erase(iter);
-        return true;
+    {
+        std::lock_guard lk{impl_->cvMutex_};
+        impl_->delayDestroyEngines_.push_back(id);
     }
-    return false;
+    impl_->cv_.notify_all();
+    return true;
 }
+
 
 bool EngineManager::destroyEngine(qjspp::JsEngine* engine) const {
     return destroyEngine(engine->getData<EngineData>()->id_);
