@@ -10,6 +10,8 @@
 #include "nlohmann/json.hpp"
 #include "nlohmann/json_fwd.hpp"
 
+#include "plotx/utils/TimeUtils.hpp"
+
 #include <algorithm>
 #include <string>
 #include <utility>
@@ -150,12 +152,7 @@ std::optional<CommentModel> PlotHandle::getComment(CommentID id) const {
 
 CommentID PlotHandle::addComment(mce::UUID const& author, std::string const& content) {
     auto id = impl->commentId_.next();
-    impl->data_.comments_.emplace_back(
-        id,
-        author.asString(),
-        content,
-        "time" // TODO: get current time
-    );
+    impl->data_.comments_.emplace_back(id, author.asString(), content, time_utils::format(time_utils::getLocalTime()));
     markDirty();
     return id;
 }
