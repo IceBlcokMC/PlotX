@@ -15,6 +15,8 @@
 #include "mc/server/commands/CommandOutput.h"
 #include "mc/server/commands/CommandPositionFloat.h"
 #include "mc/server/commands/CommandSelector.h"
+#include "plotx/core/PlotController.hpp"
+
 #include <mc/world/actor/Actor.h>
 #include <mc/world/actor/ActorType.h>
 #include <mc/world/actor/player/Player.h>
@@ -144,7 +146,7 @@ void PlotXCommand::setup() {
             return;
         }
         auto& player = GET_ENTITY_AND_CAST_PLAYER(origin);
-        gui::Main::sendTo(player);
+        MainGUI::sendTo(player);
     });
 
     // plotx mgr
@@ -168,7 +170,7 @@ void PlotXCommand::setup() {
             if (!ensurePlayerInPlotDimension(player, output)) {
                 return;
             }
-            // TODO: impl
+            PlotX::getInstance().getPlotController()->teleportUnownedPlot(player);
         });
 }
 bool PlotXCommand::ensureConsoleExecute(CommandOrigin const& origin, CommandOutput& output) {

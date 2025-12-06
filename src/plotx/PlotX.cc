@@ -1,13 +1,17 @@
 #include "PlotX.hpp"
 
 #include "command/PlotXCommand.hpp"
+#include "plotx/core/PlotController.hpp"
+#include "plotx/core/PlotEventDriven.hpp"
+#include "plotx/core/PlotRegistry.hpp"
+#include "plotx/infra/Config.hpp"
+
 #include "ll/api/Config.h"
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/io/LogLevel.h"
 #include "ll/api/mod/RegisterHelper.h"
-#include "plotx/core/PlotEventDriven.hpp"
-#include "plotx/core/PlotRegistry.hpp"
-#include "plotx/infra/Config.hpp"
+
+
 #include <filesystem>
 #include <memory>
 
@@ -19,6 +23,8 @@ struct PlotX::Impl {
     ll::mod::NativeMod&              self_;
     std::unique_ptr<PlotEventDriven> plotEventDriven_{nullptr};
     std::unique_ptr<PlotRegistry>    registry_{nullptr};
+
+    std::unique_ptr<PlotController> controller_{nullptr};
 
     explicit Impl() : self_(*ll::mod::NativeMod::current()) {}
 };
@@ -46,7 +52,8 @@ bool PlotX::load() {
     loadConfig();
 
     logger.debug("Initialize PlotRegistry");
-    impl_->registry_ = std::make_unique<PlotRegistry>(*this);
+    impl_->registry_   = std::make_unique<PlotRegistry>(*this);
+    impl_->controller_ = std::make_unique<PlotController>(*impl_->registry_, *this);
 
     return true;
 }
@@ -70,7 +77,8 @@ bool PlotX::disable() {
 ll::mod::NativeMod& PlotX::getSelf() const { return impl_->self_; }
 ll::io::Logger&     PlotX::getLogger() const { return impl_->self_.getLogger(); }
 
-PlotRegistry* PlotX::getPlotRegistry() const { return impl_->registry_.get(); }
+PlotRegistry*   PlotX::getPlotRegistry() const { return impl_->registry_.get(); }
+PlotController* PlotX::getPlotController() const { return impl_->controller_.get(); }
 
 std::filesystem::path PlotX::getConfigPath() const { return getSelf().getConfigDir() / ConfigFileName; }
 
