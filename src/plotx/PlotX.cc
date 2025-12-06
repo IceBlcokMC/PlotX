@@ -11,6 +11,7 @@
 #include "ll/api/io/LogLevel.h"
 #include "ll/api/mod/RegisterHelper.h"
 
+#include "mc/world/level/dimension/VanillaDimensions.h"
 
 #include <filesystem>
 #include <memory>
@@ -101,7 +102,8 @@ int PlotX::getDimensionId() {
 #ifdef PLOTX_OVERWORLD
     return 0;
 #else
-    // TODO: impl
+    static int const dimensionId = VanillaDimensions::fromString(DimensionName.data());
+    return dimensionId;
 #endif
 }
 
