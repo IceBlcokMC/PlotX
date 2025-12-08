@@ -112,7 +112,7 @@ void PlotXCommand::setup() {
         if (!ensurePlayerInPlotDimension(player, output)) {
             return;
         }
-        PlotX::getInstance().getController()->sendPlayerCurrentPlot(player);
+        PlotX::getInstance().getController()->showPlotGUIFor(player);
     });
 
     // plotx

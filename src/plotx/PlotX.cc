@@ -1,5 +1,4 @@
 #include "PlotX.hpp"
-
 #include "command/PlotXCommand.hpp"
 #include "plotx/core/PlotController.hpp"
 #include "plotx/core/PlotEventDriven.hpp"
@@ -10,10 +9,12 @@
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/io/LogLevel.h"
 #include "ll/api/mod/RegisterHelper.h"
+#include <ll/api/service/Bedrock.h>
 
 #include "mc/world/level/dimension/VanillaDimensions.h"
 
 #include <filesystem>
+#include <mc/world/level/Level.h>
 #include <memory>
 
 
@@ -113,7 +114,12 @@ bool PlotX::isMoreDimensionsEnv() {
     return true;
 #endif
 }
-
+std::shared_ptr<Dimension> PlotX::getPlotDimension() {
+    if (auto level = ll::service::getLevel()) {
+        return level->getDimension(getDimensionId()).lock();
+    }
+    return nullptr;
+}
 
 } // namespace plotx
 

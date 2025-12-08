@@ -11,6 +11,7 @@
 #include "plotx/gui/PlotManagerGui.hpp"
 #include "plotx/utils/StringUtils.hpp"
 
+#include <ll/api/service/Bedrock.h>
 #include <mc/world/level/Level.h>
 #include <mc/world/level/dimension/Dimension.h>
 
@@ -27,9 +28,19 @@ using ll::i18n_literals::operator""_trl;
 PlotController::PlotController(PlotRegistry& registry, PlotX& mod) : impl(std::make_unique<Impl>(registry, mod)) {}
 PlotController::~PlotController() {}
 
+
 void PlotController::teleportUnownedPlot(Player& player) const {
     if (auto coord = impl->registry.findUnownedPlot()) {
-        // TODO: impl
+        if (auto dimension = PlotX::getPlotDimension()) {
+            coord->min.y = dimension->getSpawnYPosition();
+            player.teleport(coord->min, dimension->getDimensionId(), player.getRotation());
+        } else {
+            impl->mod.getLogger().error("teleport to unowned plot failed, dimension is null");
+            message_utils::sendText<message_utils::LogLevel::Error>(
+                player,
+                "传送失败，找不到地皮维度"_trl(player.getLocaleCode())
+            );
+        }
     } else {
         message_utils::sendText<message_utils::LogLevel::Error>(
             player,
@@ -40,7 +51,7 @@ void PlotController::teleportUnownedPlot(Player& player) const {
 void PlotController::teleportToPlot(Player& player, std::shared_ptr<PlotHandle> handle) {
     // TODO
 }
-void PlotController::sendPlayerCurrentPlot(Player& player) const {
+void PlotController::showPlotGUIFor(Player& player) const {
     auto coord = PlotCoord{player.getPosition()};
     if (!coord.isValid()) {
         message_utils::sendText<message_utils::LogLevel::Error>(
@@ -60,8 +71,7 @@ void PlotController::switchPlayerDimension(Player& player) const {
     if (player.getDimensionId() == PlotX::getDimensionId()) {
         player.teleport(player.getExpectedSpawnPosition(), player.getExpectedSpawnDimensionId(), player.getRotation());
     } else {
-        auto& level = player.getLevel();
-        if (auto dimension = level.getDimension(PlotX::getDimensionId()).lock()) {
+        if (auto dimension = PlotX::getPlotDimension()) {
             player.teleport(dimension->getSpawnPos(), dimension->getDimensionId(), player.getRotation());
         } else {
             impl->mod.getLogger().error("switch dimension failed, dimension is null");

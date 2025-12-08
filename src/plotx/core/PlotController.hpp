@@ -3,14 +3,11 @@
 #include <string>
 
 
-namespace plotx {
-class PlotCoord;
-}
-namespace plotx {
-class PlotHandle;
-}
+class Dimension;
 class Player;
 namespace plotx {
+class PlotHandle;
+class PlotCoord;
 class PlotX;
 class PlotRegistry;
 } // namespace plotx
@@ -29,7 +26,7 @@ public:
 
     void teleportToPlot(Player& player, std::shared_ptr<PlotHandle> handle);
 
-    void sendPlayerCurrentPlot(Player& player) const;
+    void showPlotGUIFor(Player& player) const;
 
     void switchPlayerDimension(Player& player) const;
 

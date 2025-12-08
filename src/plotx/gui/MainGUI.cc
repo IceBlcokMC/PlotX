@@ -23,7 +23,7 @@ void MainGUI::sendTo(Player& player) {
         PlotX::getInstance().getController()->switchPlayerDimension(pl);
     });
     fm.appendButton("管理脚下地皮"_trl(localeCode), "textures/ui/icon_recipe_item", "path", [](Player& pl) {
-        PlotX::getInstance().getController()->sendPlayerCurrentPlot(pl);
+        PlotX::getInstance().getController()->showPlotGUIFor(pl);
     });
     fm.appendButton("管理地皮"_trl(localeCode), "textures/ui/icon_recipe_nature", "path", [](Player& pl) {
         PlotPicker::sendTo(pl, [](Player& player, std::shared_ptr<PlotHandle> handle) {
