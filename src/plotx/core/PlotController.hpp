@@ -24,7 +24,7 @@ public:
 
     void teleportUnownedPlot(Player& player) const;
 
-    void teleportToPlot(Player& player, std::shared_ptr<PlotHandle> handle);
+    void teleportToPlot(Player& player, std::shared_ptr<PlotHandle> handle) const;
 
     void showPlotGUIFor(Player& player) const;
 
@@ -35,6 +35,9 @@ public:
     void claimPlot(Player& player, PlotCoord coord);
 
     void buyPlotFromPlayer(Player& player, std::shared_ptr<PlotHandle> handle);
+
+private:
+    void handleTeleportToPlot(Player& player, int x, int z) const;
 };
 
 } // namespace plotx

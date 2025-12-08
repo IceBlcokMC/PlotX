@@ -31,16 +31,7 @@ PlotController::~PlotController() {}
 
 void PlotController::teleportUnownedPlot(Player& player) const {
     if (auto coord = impl->registry.findUnownedPlot()) {
-        if (auto dimension = PlotX::getPlotDimension()) {
-            coord->min.y = dimension->getSpawnYPosition();
-            player.teleport(coord->min, dimension->getDimensionId(), player.getRotation());
-        } else {
-            impl->mod.getLogger().error("teleport to unowned plot failed, dimension is null");
-            message_utils::sendText<message_utils::LogLevel::Error>(
-                player,
-                "传送失败，找不到地皮维度"_trl(player.getLocaleCode())
-            );
-        }
+        handleTeleportToPlot(player, coord->min.x, coord->min.z);
     } else {
         message_utils::sendText<message_utils::LogLevel::Error>(
             player,
@@ -48,9 +39,12 @@ void PlotController::teleportUnownedPlot(Player& player) const {
         );
     }
 }
-void PlotController::teleportToPlot(Player& player, std::shared_ptr<PlotHandle> handle) {
-    // TODO
+
+void PlotController::teleportToPlot(Player& player, std::shared_ptr<PlotHandle> handle) const {
+    auto& min = handle->getCoord().min;
+    handleTeleportToPlot(player, min.x, min.z);
 }
+
 void PlotController::showPlotGUIFor(Player& player) const {
     auto coord = PlotCoord{player.getPosition()};
     if (!coord.isValid()) {
@@ -79,6 +73,7 @@ void PlotController::switchPlayerDimension(Player& player) const {
         }
     }
 }
+
 bool PlotController::changePlotName(Player& player, std::shared_ptr<PlotHandle> handle, std::string newName) {
     if (string_utils::length(newName) > 32) {
         message_utils::sendText<message_utils::LogLevel::Error>(player, "地皮名称过长"_trl(player.getLocaleCode()));
@@ -91,8 +86,22 @@ bool PlotController::changePlotName(Player& player, std::shared_ptr<PlotHandle> 
 void PlotController::claimPlot(Player& player, PlotCoord coord) {
     // TODO: impl
 }
+
 void PlotController::buyPlotFromPlayer(Player& player, std::shared_ptr<PlotHandle> handle) {
     // TODO
+}
+
+void PlotController::handleTeleportToPlot(Player& player, int x, int z) const {
+    if (auto dimension = PlotX::getPlotDimension()) {
+        Vec3 position{x + 0.5f, dimension->getSpawnYPosition(), z + 0.5f};
+        player.teleport(position, dimension->getDimensionId(), player.getRotation());
+    } else {
+        impl->mod.getLogger().error("handleTeleportToPlot failed, dimension is null");
+        message_utils::sendText<message_utils::LogLevel::Error>(
+            player,
+            "传送失败，找不到地皮维度"_trl(player.getLocaleCode())
+        );
+    }
 }
 
 
