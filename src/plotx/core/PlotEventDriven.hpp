@@ -17,19 +17,14 @@ class PlotCoord;
  * @note 驱动地皮的进出事件
  */
 class PlotEventDriven {
-    std::unordered_map<mce::UUID, int>            dimids_{};
-    std::unordered_map<mce::UUID, PlotCoord>      coords_{};
-    std::vector<Player*>                          players_{};
-    ll::event::ListenerPtr                        connectListener_{nullptr};
-    ll::event::ListenerPtr                        disconnectListener_{nullptr};
-    std::shared_ptr<ll::coro::InterruptableSleep> sleep_{nullptr};
-    std::shared_ptr<std::atomic<bool>>            quit_{nullptr};
+    struct Impl;
+    std::unique_ptr<Impl> impl;
 
 public:
     PlotEventDriven();
     ~PlotEventDriven();
 
-    void tick();
+    void tick() const;
     void updateTip(Player* player, Vec3 const& pos, PlotCoord const& coord) const;
 };
 

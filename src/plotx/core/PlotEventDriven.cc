@@ -19,30 +19,43 @@
 
 namespace plotx {
 
+struct PlotEventDriven::Impl {
+    mutable std::shared_mutex                mutex;
+    std::unordered_map<mce::UUID, int>       dimids_{};
+    std::unordered_map<mce::UUID, PlotCoord> coords_{};
+    std::vector<Player*>                     players_{};
 
-PlotEventDriven::PlotEventDriven() {
-    connectListener_ = ll::event::EventBus::getInstance().emplaceListener<ll::event::PlayerJoinEvent>(
+    ll::event::ListenerPtr                        connectListener_{nullptr};
+    ll::event::ListenerPtr                        disconnectListener_{nullptr};
+    std::shared_ptr<ll::coro::InterruptableSleep> sleep_{nullptr};
+    std::shared_ptr<std::atomic<bool>>            quit_{nullptr};
+};
+
+PlotEventDriven::PlotEventDriven() : impl(std::make_unique<Impl>()) {
+    impl->connectListener_ = ll::event::EventBus::getInstance().emplaceListener<ll::event::PlayerJoinEvent>(
         [this](ll::event::PlayerJoinEvent& ev) {
             if (ev.self().isSimulatedPlayer()) {
                 return;
             }
-            players_.push_back(&ev.self());
+            std::unique_lock lk{impl->mutex};
+            impl->players_.push_back(&ev.self());
         }
     );
-    disconnectListener_ = ll::event::EventBus::getInstance().emplaceListener<ll::event::PlayerDisconnectEvent>(
+    impl->disconnectListener_ = ll::event::EventBus::getInstance().emplaceListener<ll::event::PlayerDisconnectEvent>(
         [this](ll::event::PlayerDisconnectEvent& ev) {
             if (ev.self().isSimulatedPlayer()) {
                 return;
             }
-            players_.erase(std::remove(players_.begin(), players_.end(), &ev.self()), players_.end());
-            dimids_.erase(ev.self().getUuid());
-            coords_.erase(ev.self().getUuid());
+            std::unique_lock lk{impl->mutex};
+            std::erase(impl->players_, &ev.self());
+            impl->dimids_.erase(ev.self().getUuid());
+            impl->coords_.erase(ev.self().getUuid());
         }
     );
 
-    sleep_ = std::make_shared<ll::coro::InterruptableSleep>();
-    quit_  = std::make_shared<std::atomic<bool>>(false);
-    ll::coro::keepThis([quit = quit_, sleep = sleep_, this]() -> ll::coro::CoroTask<> {
+    impl->sleep_ = std::make_shared<ll::coro::InterruptableSleep>();
+    impl->quit_  = std::make_shared<std::atomic<bool>>(false);
+    ll::coro::keepThis([quit = impl->quit_, sleep = impl->sleep_, this]() -> ll::coro::CoroTask<> {
         while (!quit->load()) {
             co_await sleep->sleepFor(ll::chrono::ticks{5});
             if (quit->load()) {
@@ -61,74 +74,58 @@ PlotEventDriven::PlotEventDriven() {
 }
 
 PlotEventDriven::~PlotEventDriven() {
-    quit_->store(true);
-    sleep_->interrupt(true);
-    ll::event::EventBus::getInstance().removeListener(connectListener_);
-    ll::event::EventBus::getInstance().removeListener(disconnectListener_);
+    impl->quit_->store(true);
+    impl->sleep_->interrupt(true);
+    ll::event::EventBus::getInstance().removeListener(impl->connectListener_);
+    ll::event::EventBus::getInstance().removeListener(impl->disconnectListener_);
 }
 
-void PlotEventDriven::tick() {
-    auto& bus  = ll::event::EventBus::getInstance();
-    auto  iter = players_.begin();
-    while (iter != players_.end()) {
-        try {
-            auto player = *iter;
+void PlotEventDriven::tick() const {
+    auto&      bus       = ll::event::EventBus::getInstance();
+    auto const plotDimId = PlotX::getDimensionId();
 
-            auto const& uuid = player->getUuid();
+    std::shared_lock lk{impl->mutex};
+    for (auto player : impl->players_) {
+        auto const& uuid = player->getUuid();
 
-            auto const& curPos  = player->getPosition();
-            auto const  curDim  = player->getDimensionId();
-            auto const  curPlot = PlotCoord{curPos};
+        auto const& curPos   = player->getPosition();
+        auto const  curDimId = player->getDimensionId();
+        auto const  curPlot  = PlotCoord{curPos};
 
-            auto& lastDim  = dimids_[uuid];
-            auto& lastPlot = coords_[uuid];
+        auto& lastDimId = impl->dimids_[uuid];
+        auto& lastPlot  = impl->coords_[uuid];
 
-            auto const plotDim = PlotX::getDimensionId();
-
-            // 维度变化
-            if (curDim != lastDim) {
-                // 当前不在地皮维度 & 上一次在地皮维度 & 上一次在地皮内
-                if (curDim != plotDim && lastDim == plotDim && lastPlot.isValid()) {
-                    // 玩家离开地皮
-                    bus.publish(event::PlayerLeavePlotEvent{player, curPos, curDim, curPlot, lastDim, lastPlot});
-                }
-                // 当前在地皮维度 & 上一次不在地皮维度 & 当前在地皮内
-                else if (curDim == plotDim && lastDim != plotDim && curPlot.isValid()) {
-                    // 玩家进入地皮
-                    bus.publish(event::PlayerEnterPlotEvent{player, curPos, curDim, curPlot, lastDim, lastPlot});
-                }
-                lastDim  = curDim;  // 更新维度缓存
-                lastPlot = curPlot; // 更新地皮缓存
-                ++iter;
-                continue;
+        // 维度变化
+        if (curDimId != lastDimId) {
+            // 当前不在地皮维度 & 上一次在地皮维度 & 上一次在地皮内 = 玩家离开地皮
+            if (curDimId != plotDimId && lastDimId == plotDimId && lastPlot.isValid()) {
+                bus.publish(event::PlayerLeavePlotEvent{player, curPos, curDimId, curPlot, lastDimId, lastPlot});
             }
-
-            if (curDim != plotDim) {
-                ++iter;
-                continue;
+            // 当前在地皮维度 & 上一次不在地皮维度 & 当前在地皮内 = 玩家进入地皮
+            else if (curDimId == plotDimId && lastDimId != plotDimId && curPlot.isValid()) {
+                bus.publish(event::PlayerEnterPlotEvent{player, curPos, curDimId, curPlot, lastDimId, lastPlot});
             }
-            updateTip(player, curPos, curPlot);
+            lastDimId = curDimId;
+            lastPlot  = curPlot;
+            continue;
+        }
 
-            // 地皮变化
-            // 1. 离开地皮
-            // 2. 进入地皮
-            if (curPlot != lastPlot) {
-                // 上一次在地皮内 & 当前不在地皮内
-                if (lastPlot.isValid() && !curPlot.isValid()) {
-                    // 玩家离开地皮
-                    bus.publish(event::PlayerLeavePlotEvent{player, curPos, curDim, curPlot, lastDim, lastPlot});
-                }
-                // 上一次不在地皮内 & 当前在地皮内
-                else if (!lastPlot.isValid() && curPlot.isValid()) {
-                    // 玩家进入地皮
-                    bus.publish(event::PlayerEnterPlotEvent{player, curPos, curDim, curPlot, lastDim, lastPlot});
-                }
-                lastPlot = curPlot; // 更新地皮缓存
+        if (curDimId != plotDimId) {
+            continue;
+        }
+        updateTip(player, curPos, curPlot);
+
+        // 地皮变化
+        if (curPlot != lastPlot) {
+            // 上一次在地皮内 & 当前不在地皮内 = 玩家离开地皮
+            if (lastPlot.isValid() && !curPlot.isValid()) {
+                bus.publish(event::PlayerLeavePlotEvent{player, curPos, curDimId, curPlot, lastDimId, lastPlot});
             }
-
-            ++iter;
-        } catch (...) {
-            iter = players_.erase(iter);
+            // 上一次不在地皮内 & 当前在地皮内 = 玩家进入地皮
+            else if (!lastPlot.isValid() && curPlot.isValid()) {
+                bus.publish(event::PlayerEnterPlotEvent{player, curPos, curDimId, curPlot, lastDimId, lastPlot});
+            }
+            lastPlot = curPlot;
         }
     }
 }
