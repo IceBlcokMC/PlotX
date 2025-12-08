@@ -1,5 +1,7 @@
 #include "PlayerEnterPlotEvent.hpp"
 
+#include "Helper.hpp"
+
 namespace plotx::event {
 
 
@@ -13,5 +15,6 @@ PlayerEnterPlotEvent::PlayerEnterPlotEvent(
 )
 : IPlayerOnPlotMoveEvent(player, currentPos, currentDimId, currentPlotCoord, lastDimId, lastPlotCoord) {}
 
+IMPL_EVENT_EMITTER(PlayerEnterPlotEvent)
 
 } // namespace plotx::event

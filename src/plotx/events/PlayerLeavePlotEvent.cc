@@ -1,5 +1,7 @@
 #include "PlayerLeavePlotEvent.hpp"
 
+#include "Helper.hpp"
+
 namespace plotx::event {
 
 
@@ -13,5 +15,6 @@ PlayerLeavePlotEvent::PlayerLeavePlotEvent(
 )
 : IPlayerOnPlotMoveEvent(player, currentPos, currentDimId, currentPlotCoord, lastDimId, lastPlotCoord) {}
 
+IMPL_EVENT_EMITTER(PlayerLeavePlotEvent)
 
 } // namespace plotx::event
