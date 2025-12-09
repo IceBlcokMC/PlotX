@@ -15,7 +15,10 @@ class PlayerChangePlotNameEvent final : public ll::event::Cancellable<ll::event:
     std::string&                newName_;
 
 public:
-    explicit PlayerChangePlotNameEvent(Player& player, std::shared_ptr<PlotHandle> handle, std::string& newName);
+    explicit PlayerChangePlotNameEvent(Player& player, std::shared_ptr<PlotHandle> handle, std::string& newName)
+    : Cancellable(player),
+      handle_(std::move(handle)),
+      newName_(newName) {}
 
     [[nodiscard]] std::shared_ptr<PlotHandle> getPlotHandle() const;
 
