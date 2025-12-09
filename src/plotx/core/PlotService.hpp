@@ -3,6 +3,9 @@
 #include <string>
 
 
+namespace mce {
+class UUID;
+}
 class Dimension;
 class Player;
 namespace plotx {
@@ -31,6 +34,8 @@ public:
     void switchPlayerDimension(Player& player) const;
 
     bool changePlotName(Player& player, std::shared_ptr<PlotHandle> handle, std::string newName);
+
+    bool modifyPlotMember(Player& player, std::shared_ptr<PlotHandle> handle, mce::UUID const& target, bool isAdd);
 
     void claimPlot(Player& player, PlotCoord coord);
 

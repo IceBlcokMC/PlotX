@@ -62,7 +62,7 @@ void PlotManagerGUI::sendTo(Player& player, std::shared_ptr<PlotHandle> handle) 
             handleEditSellStatus(player, handle);
         });
         f.appendButton("成员管理"_trl(localeCode), "textures/ui/share_microsoft", "path", [handle](Player& player) {
-            handleEditMember(player, handle);
+            showMembers(player, handle);
         });
     }
     f.appendButton("地皮评论"_trl(localeCode), "textures/ui/icon_sign", "path", [handle](Player& player) {
@@ -143,7 +143,7 @@ void PlotManagerGUI::sellPlotOrEditSellPrice(Player& player, std::shared_ptr<Plo
         }
     });
 }
-void PlotManagerGUI::handleEditMember(Player& player, std::shared_ptr<PlotHandle> handle) {
+void PlotManagerGUI::showMembers(Player& player, std::shared_ptr<PlotHandle> handle) {
     auto localeCode = player.getLocaleCode();
 
     auto f = ll::form::SimpleForm{};
@@ -162,8 +162,9 @@ void PlotManagerGUI::handleEditMember(Player& player, std::shared_ptr<PlotHandle
         auto uuid = mce::UUID::fromString(member);
         auto info = infoDb.fromUuid(uuid);
         f.appendButton(info ? info->name : member, [handle, uuid](Player& player) {
-            handle->removeMember(uuid);
-            handleEditMember(player, handle);
+            if (PlotX::getInstance().getService()->modifyPlotMember(player, handle, uuid, false)) {
+                showMembers(player, handle);
+            }
         });
     }
     f.sendTo(player);
@@ -190,8 +191,9 @@ void PlotManagerGUI::chooseAddType(Player& player, std::shared_ptr<PlotHandle> h
 }
 void PlotManagerGUI::addMemberFromOnline(Player& player, std::shared_ptr<PlotHandle> handle) {
     PlayerPicker::sendTo(player, [handle](Player& player, mce::UUID picked) {
-        handle->addMember(picked);
-        handleEditMember(player, handle);
+        if (PlotX::getInstance().getService()->modifyPlotMember(player, handle, picked, true)) {
+            showMembers(player, handle);
+        }
     });
 }
 void PlotManagerGUI::addMemberFromOffline(Player& player, std::shared_ptr<PlotHandle> handle) {
@@ -220,8 +222,9 @@ void PlotManagerGUI::addMemberFromOffline(Player& player, std::shared_ptr<PlotHa
             );
             return;
         }
-        handle->addMember(entry->uuid);
-        handleEditMember(player, handle);
+        if (PlotX::getInstance().getService()->modifyPlotMember(player, handle, entry->uuid, true)) {
+            showMembers(player, handle);
+        }
     });
 }
 

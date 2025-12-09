@@ -8,6 +8,7 @@
 
 #include "ll/api/i18n/I18n.h"
 #include "plotx/events/PlayerChangePlotNameEvent.hpp"
+#include "plotx/events/PlayerModifyPlotMemberEvent.hpp"
 #include "plotx/gui/BuyPlotGui.hpp"
 #include "plotx/gui/PlotManagerGui.hpp"
 #include "plotx/utils/StringUtils.hpp"
@@ -90,6 +91,32 @@ bool PlotService::changePlotName(Player& player, std::shared_ptr<PlotHandle> han
     }
 
     handle->setName(newName);
+    return true;
+}
+
+bool PlotService::modifyPlotMember(
+    Player&                     player,
+    std::shared_ptr<PlotHandle> handle,
+    mce::UUID const&            target,
+    bool                        isAdd
+) {
+    if (target == mce::UUID::EMPTY()) {
+        return false;
+    }
+
+    static_assert((bool)PlayerModifyPlotMemberEvent::ModifyType::Add == true);
+    auto event = PlayerModifyPlotMemberEvent{
+        player,
+        handle,
+        target,
+        static_cast<PlayerModifyPlotMemberEvent::ModifyType>(isAdd)
+    };
+    ll::event::EventBus::getInstance().publish(event);
+    if (event.isCancelled()) {
+        return false;
+    }
+
+    isAdd ? handle->addMember(target) : handle->removeMember(target);
     return true;
 }
 
