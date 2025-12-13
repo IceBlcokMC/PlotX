@@ -1,9 +1,9 @@
 #include "PlotX.hpp"
 #include "command/PlotXCommand.hpp"
+#include "core/Config.hpp"
 #include "plotx/core/PlotEventDriven.hpp"
 #include "plotx/core/PlotRegistry.hpp"
 #include "plotx/core/PlotService.hpp"
-#include "plotx/infra/Config.hpp"
 
 #include "ll/api/Config.h"
 #include "ll/api/i18n/I18n.h"
@@ -17,6 +17,9 @@
 #include <mc/world/level/Level.h>
 #include <memory>
 
+#include "econbridge/detail/LegacyMoneyEconomy.h"
+#include "econbridge/detail/NullEconomy.h"
+#include "econbridge/detail/ScoreboardEconomy.h"
 
 namespace plotx {
 
@@ -28,7 +31,28 @@ struct PlotX::Impl {
 
     std::unique_ptr<PlotService> service{nullptr};
 
+    std::shared_ptr<econbridge::IEconomy> economy{nullptr};
+
     explicit Impl() : self(*ll::mod::NativeMod::current()) {}
+
+    ll::Expected<> initEconomy() {
+        switch (gConfig_.economy.type) {
+        case Config::EconomyConfig::Type::Null:
+            economy = std::make_shared<econbridge::detail::NullEconomy>();
+            break;
+        case Config::EconomyConfig::Type::LegacyMoney:
+            if (econbridge::detail::LegacyMoneyEconomy::isAvailable()) {
+                economy = std::make_shared<econbridge::detail::LegacyMoneyEconomy>();
+            } else {
+                return ll::makeStringError("LegacyMoney.dll is not available");
+            }
+            break;
+        case Config::EconomyConfig::Type::Scoreboard:
+            economy = std::make_shared<econbridge::detail::ScoreboardEconomy>(gConfig_.economy.scoreboard);
+            break;
+        }
+        return {};
+    }
 };
 
 PlotX::PlotX() : impl_(std::make_unique<Impl>()) {}
@@ -46,7 +70,6 @@ bool PlotX::load() {
 
     logger.debug("Try to load i18n");
     if (auto i18n = ll::i18n::getInstance().load(getSelf().getLangDir()); !i18n) {
-        logger.error("Failed to load i18n: ");
         i18n.error().log(logger);
     }
 
@@ -61,6 +84,12 @@ bool PlotX::load() {
 }
 
 bool PlotX::enable() {
+    if (auto exc = impl_->initEconomy(); !exc) {
+        exc.error().log(getLogger());
+        getLogger().error("Failed to initialize economy, abort loading.");
+        return false;
+    }
+
     impl_->plotEventDriven = std::make_unique<PlotEventDriven>();
 
     PlotXCommand::setup();
@@ -84,7 +113,8 @@ PlotService*  PlotX::getService() const { return impl_->service.get(); }
 
 std::filesystem::path PlotX::getConfigPath() const { return getSelf().getConfigDir() / ConfigFileName; }
 
-std::filesystem::path PlotX::getDatabasePath() const { return getSelf().getDataDir() / DatabaseDirName; }
+std::filesystem::path     PlotX::getDatabasePath() const { return getSelf().getDataDir() / DatabaseDirName; }
+econbridge::IEconomy::Ptr PlotX::getEconomy() const { return impl_->economy; }
 
 void PlotX::loadConfig() const {
     auto path = getConfigPath();
@@ -115,8 +145,10 @@ bool PlotX::isMoreDimensionsEnv() {
 #endif
 }
 std::shared_ptr<Dimension> PlotX::getPlotDimension() {
-    if (auto level = ll::service::getLevel()) {
-        return level->getDimension(getDimensionId()).lock();
+    auto dimension =
+        ll::service::getLevel().transform([](Level& level) { return level.getDimension(getDimensionId()).lock(); });
+    if (dimension.has_value()) {
+        return *dimension;
     }
     return nullptr;
 }

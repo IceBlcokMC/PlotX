@@ -7,7 +7,7 @@ add_requires("levilamina 1.7.0", {configs = {target_type = "server"}})
 add_requires("levibuildscript")
 
 -- engsr6982
-add_requires("qjspp 170332b5a3661e69c6c3f4c8e3f09f70a3bba277");
+add_requires("economy_bridge main")
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
@@ -55,8 +55,7 @@ target("PlotX") -- Change this to your mod name.
         "src/**.cc"
     )
 
-    add_packages("levilamina", "qjspp")
-    add_defines("QJSPP_INT64_OR_UINT64_ALWAYS_USE_NUMBER_OF_BIGINT_IN_TYPE_CONVERTER")
+    add_packages("levilamina", "economy_bridge")
 
     if has_config("overworld") then
         add_defines("PLOTX_OVERWORLD")

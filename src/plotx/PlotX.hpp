@@ -7,6 +7,8 @@
 
 #include "plotx/Global.hpp"
 
+#include "econbridge/IEconomy.h"
+
 namespace plotx {
 
 
@@ -33,6 +35,8 @@ public:
 
     PXNDAPI std::filesystem::path getConfigPath() const;
     PXNDAPI std::filesystem::path getDatabasePath() const;
+
+    PXAPI econbridge::IEconomy::Ptr getEconomy() const;
 
     PXAPI void loadConfig() const;
     PXAPI void saveConfig() const;

@@ -18,6 +18,12 @@ struct Config {
         std::string biome        = "minecraft:plains";           // 地皮世界生物群系
     } generator;
 
+    struct EconomyConfig {
+        enum class Type { Null, LegacyMoney, Scoreboard };
+        Type        type{Type::Null};
+        std::string scoreboard = "money";
+    } economy;
+
     struct {
         int sellPrice{100}; // 地皮出售价格
     } plot;
