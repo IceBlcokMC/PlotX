@@ -11,6 +11,8 @@
 #include <mc/network/packet/TextPacket.h>
 #include <mc/world/actor/player/Player.h>
 
+#include "plotx/infra/PlotResult.hpp"
+
 inline ToastRequestPacket::ToastRequestPacket()               = default;
 inline ToastRequestPacketPayload::ToastRequestPacketPayload() = default;
 
@@ -36,6 +38,8 @@ template <typename... Args>
 void sendErrorText(Player& p, std::string const& fmt, Args&&... args) {
     p.sendMessage("§b[PlotX] §c" + fmt_str(fmt, std::forward<Args>(args)...));
 }
+
+inline void sendError(Player& p, ll::Error const& err) { sendErrorText(p, err.message()); }
 
 // 文本提示 (物品栏上方)
 template <typename... Args>
