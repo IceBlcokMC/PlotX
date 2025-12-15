@@ -1,4 +1,6 @@
 #pragma once
+#include <ll/api/Expected.h>
+
 #include <memory>
 #include <string>
 
@@ -25,24 +27,25 @@ public:
     explicit PlotService(PlotRegistry& registry, PlotX& mod);
     ~PlotService();
 
-    void teleportUnownedPlot(Player& player) const;
+    ll::Expected<> teleportUnownedPlot(Player& player) const;
 
-    void teleportToPlot(Player& player, std::shared_ptr<PlotHandle> handle) const;
+    ll::Expected<> teleportToPlot(Player& player, std::shared_ptr<PlotHandle> handle) const;
 
-    void showPlotGUIFor(Player& player) const;
+    ll::Expected<> showPlotGUIFor(Player& player) const;
 
-    void switchPlayerDimension(Player& player) const;
+    ll::Expected<> switchPlayerDimension(Player& player) const;
 
-    bool changePlotName(Player& player, std::shared_ptr<PlotHandle> handle, std::string newName);
+    ll::Expected<> changePlotName(Player& player, std::shared_ptr<PlotHandle> handle, std::string newName);
 
-    bool modifyPlotMember(Player& player, std::shared_ptr<PlotHandle> handle, mce::UUID const& target, bool isAdd);
+    ll::Expected<>
+    modifyPlotMember(Player& player, std::shared_ptr<PlotHandle> handle, mce::UUID const& target, bool isAdd);
 
-    bool claimPlot(Player& player, PlotCoord coord);
+    ll::Expected<> claimPlot(Player& player, PlotCoord coord);
 
-    bool transferPlotTo(Player& player, std::shared_ptr<PlotHandle> handle);
+    ll::Expected<> transferPlotTo(Player& player, std::shared_ptr<PlotHandle> handle);
 
 private:
-    void handleTeleportToPlot(Player& player, int x, int z) const;
+    ll::Expected<> handleTeleportToPlot(Player& player, int x, int z) const;
 };
 
 } // namespace plotx
