@@ -98,7 +98,7 @@ void PlotManagerGUI::handleEditName(
                 return;
             }
             auto name = std::get<std::string>(data->at("name"));
-            if (auto exp = PlotX::getInstance().getService()->changePlotName(player, handle, std::move(name))) {
+            if (auto exp = PlotX::getInstance().getService()->changePlotName(player, handle, name)) {
                 sendTo(player, handle);
             } else {
                 feedback_utils::askRetry(player, exp.error(), [handle, name](Player& player) {
