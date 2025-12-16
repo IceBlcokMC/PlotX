@@ -17,12 +17,15 @@ public:
 
     [[nodiscard]] constexpr uint64_t         getHash() const noexcept { return hash_; }
     [[nodiscard]] constexpr std::string_view getString() const noexcept { return str_; }
+    [[nodiscard]] constexpr const char*      c_str() const noexcept { return str_.data(); }
 
     [[nodiscard]] constexpr bool operator==(HashedStringView const& rhs) const noexcept { return hash_ == rhs.hash_; }
 
     [[nodiscard]] constexpr std::strong_ordering operator<=>(HashedStringView const& rhs) const noexcept {
         return hash_ <=> rhs.hash_;
     }
+
+    [[nodiscard]] constexpr operator std::string_view() const noexcept { return str_; }
 };
 
 consteval HashedStringView operator""_hsv(const char* str, std::size_t len) {
