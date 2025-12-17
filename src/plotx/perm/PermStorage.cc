@@ -2,53 +2,124 @@
 #include "PermStorage.hpp"
 
 #include "PermRegistry.hpp"
+#include "plotx/infra/Reflection.hpp"
 
 namespace plotx {
 
-bool PermStorage::get(HashedStringView key) const {
+optional_ref<const PermMeta::ValueEntry> PermStorage::get(HashedStringView key) const {
     auto it = data.find(key);
     if (it != data.end()) {
-        return it->second;
+        return {it->second};
     }
-    return PermRegistry::getDefault(key);
+    return {PermRegistry::getMeta(key).transform([](PermMeta& meta) -> PermMeta::ValueEntry& { return meta.defValue; })
+    };
 }
-void PermStorage::set(HashedStringView key, bool value) {
-    bool def = PermRegistry::getDefault(key);
+void PermStorage::set(HashedStringView key, bool value, SetTarget target) {
+    auto metaOpt = PermRegistry::getMeta(key);
+    if (!metaOpt) {
+        return;
+    }
+    auto const& meta = metaOpt.value();
 
-    if (value == def) {
-        // 如果新值 == 默认值,则删除
-        auto it = data.find(key);
+    // 校验 Scope 是否匹配 (防止把 Role 权限设成了 Global)
+    if (target == SetTarget::Global && meta.scope != PermMeta::Scope::Global) return;
+    if (target != SetTarget::Global && meta.scope != PermMeta::Scope::Role) return;
+
+    // 获取对应的默认值
+    bool defaultValue = false;
+    switch (target) {
+    case SetTarget::Global:
+        defaultValue = *meta.defValue.global;
+        break;
+    case SetTarget::Member:
+        defaultValue = *meta.defValue.member;
+        break;
+    case SetTarget::Guest:
+        defaultValue = *meta.defValue.guest;
+        break;
+    }
+
+    auto it = data.find(key);
+    if (value == defaultValue) {
+        // === 稀疏化逻辑：新值等于默认值 ===
         if (it != data.end()) {
-            data.erase(it);
+            auto& set = it->second;
+            switch (target) {
+            case SetTarget::Global:
+                set.global.reset();
+                break;
+            case SetTarget::Member:
+                set.member.reset();
+                break;
+            case SetTarget::Guest:
+                set.guest.reset();
+                break;
+            }
+            // 如果所有字段都空了，删除整个 Entry
+            if (!set.global && !set.member && !set.guest) {
+                data.erase(it);
+            }
         }
     } else {
-        // 如果新值 != 默认值，存下来
-        HashedString ownedKey(key.getHash(), key.getString().data());
-        data.insert_or_assign(std::move(ownedKey), value);
+        // === 写入逻辑：新值不等于默认值 ===
+        if (it == data.end()) {
+            HashedString ownedKey(key.getHash(), key.getString().data());
+            it = data.emplace(std::move(ownedKey), PermMeta::ValueEntry{}).first;
+        }
+
+        auto& set = it->second;
+        switch (target) {
+        case SetTarget::Global:
+            set.global = value;
+            break;
+        case SetTarget::Member:
+            set.member = value;
+            break;
+        case SetTarget::Guest:
+            set.guest = value;
+            break;
+        }
     }
 }
-nlohmann::json PermStorage::toJson() const {
-    nlohmann::json j = nlohmann::json::object();
-    for (const auto& [hashKey, val] : data) {
-        j[hashKey.getString()] = val;
+bool PermStorage::resolve(HashedStringView key, SetTarget target) const {
+    auto stored = get(key);
+    if (stored.has_value()) {
+        switch (target) {
+        case SetTarget::Global:
+            if (stored->global.has_value()) return *stored->global;
+            break;
+        case SetTarget::Member:
+            if (stored->member.has_value()) return *stored->member;
+            break;
+        case SetTarget::Guest:
+            if (stored->guest.has_value()) return *stored->guest;
+            break;
+        }
     }
-    return j;
+    return false;
 }
-void PermStorage::fromJson(nlohmann::json const& j) {
+nlohmann::json PermStorage::toJson() const { return reflection::struct2json(data).value(); }
+void           PermStorage::fromJson(nlohmann::json const& j) {
     data.clear();
     if (!j.is_object()) return;
 
-    for (auto& [keyStr, valJson] : j.items()) {
-        if (!valJson.is_boolean()) continue;
-
-        bool val = valJson.get<bool>();
-
+    for (const auto& [keyStr, valJson] : j.items()) {
         HashedString hKey(keyStr);
 
-        // 再次执行稀疏检查 (防止 JSON 里存了废数据)
-        bool def = PermRegistry::getDefault(HashedStringView{hKey});
-        if (val != def) {
-            data.emplace(std::move(hKey), val);
+        PermMeta::ValueEntry vSet;
+        reflection::json2structDiffPatch(vSet, valJson);
+
+        HashedStringView view(hKey);
+        auto             metaOpt = PermRegistry::getMeta(view);
+        if (metaOpt) {
+            const auto& def = metaOpt.value().defValue;
+            if (vSet.global == def.global) vSet.global.reset();
+            if (vSet.member == def.member) vSet.member.reset();
+            if (vSet.guest == def.guest) vSet.guest.reset();
+        }
+
+        if (vSet.global || vSet.member || vSet.guest) {
+            data.emplace(std::move(hKey), vSet);
         }
     }
 }

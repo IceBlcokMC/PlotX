@@ -16,7 +16,7 @@ struct PermMapping {
     static void           buildDefault();
     static ll::Expected<> loadUserExtension(PlotX& mod);
 
-    static optional_ref<const HashedString> get(std::string_view typeName);
+    static optional_ref<const HashedString> lookup(std::string_view typeName);
 
 private:
     static std::unordered_map<AnyTypeName, PermKey, HashedStringHasher, HashedStringEqual> mapping_;

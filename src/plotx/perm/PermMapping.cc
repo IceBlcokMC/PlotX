@@ -33,7 +33,7 @@ ll::Expected<> PermMapping::loadUserExtension(PlotX& mod) {
         return ll::makeStringError(exception.what());
     }
 }
-optional_ref<const HashedString> PermMapping::get(std::string_view typeName) {
+optional_ref<const HashedString> PermMapping::lookup(std::string_view typeName) {
     auto it = mapping_.find(typeName);
     if (it != mapping_.end()) {
         return {it->second};

@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include <optional>
 
 namespace plotx {
 
@@ -16,9 +16,35 @@ enum class PermCategory {
 };
 
 struct PermMeta {
-    bool         defaultValue{false};          // 默认值
-    PermCategory category{PermCategory::Core}; // 分类
-    std::string  name{};                       // 原始字符串
+    enum class Scope { Global, Role };
+    struct ValueEntry {
+        std::optional<bool> global; // Scope::Global
+        std::optional<bool> member; // Scope::Role
+        std::optional<bool> guest;  // Scope::Role
+
+        inline constexpr bool operator==(const ValueEntry& rhs) const = default;
+    };
+
+    Scope        scope{Scope::Global}; // 范围
+    PermCategory category;             // UI分类
+    ValueEntry     defValue;                // 默认值
+
+    // 角色权限 (Role Scope)
+    static inline PermMeta make(PermCategory cat, bool defMember, bool defGuest) {
+        return PermMeta{
+            Scope::Role,
+            cat,
+            {std::nullopt, defMember, defGuest}
+        };
+    }
+    // 环境标志 (Global Scope)
+    static inline PermMeta make(PermCategory cat, bool defVal) {
+        return PermMeta{
+            Scope::Global,
+            cat,
+            {defVal, std::nullopt, std::nullopt}
+        };
+    }
 };
 
 } // namespace plotx
