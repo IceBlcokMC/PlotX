@@ -17,10 +17,10 @@ class PermStorage {
 public:
     optional_ref<const PermMeta::ValueEntry> get(HashedStringView key) const;
 
-    enum class SetTarget { Global, Member, Guest };
-    void set(HashedStringView key, bool value, SetTarget target);
+    enum class TargetField { Global, Member, Guest };
+    void set(HashedStringView key, bool value, TargetField target);
 
-    bool resolve(HashedStringView key, SetTarget target) const;
+    bool resolve(HashedStringView key, TargetField target) const;
 
     nlohmann::json toJson() const;
     void           fromJson(nlohmann::json const& j);

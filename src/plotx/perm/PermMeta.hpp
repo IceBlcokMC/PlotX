@@ -27,7 +27,7 @@ struct PermMeta {
 
     Scope        scope{Scope::Global}; // 范围
     PermCategory category;             // UI分类
-    ValueEntry     defValue;                // 默认值
+    ValueEntry   defValue;             // 默认值
 
     // 角色权限 (Role Scope)
     static inline PermMeta make(PermCategory cat, bool defMember, bool defGuest) {

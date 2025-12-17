@@ -14,7 +14,7 @@ optional_ref<const PermMeta::ValueEntry> PermStorage::get(HashedStringView key) 
     return {PermRegistry::getMeta(key).transform([](PermMeta& meta) -> PermMeta::ValueEntry& { return meta.defValue; })
     };
 }
-void PermStorage::set(HashedStringView key, bool value, SetTarget target) {
+void PermStorage::set(HashedStringView key, bool value, TargetField target) {
     auto metaOpt = PermRegistry::getMeta(key);
     if (!metaOpt) {
         return;
@@ -22,19 +22,19 @@ void PermStorage::set(HashedStringView key, bool value, SetTarget target) {
     auto const& meta = metaOpt.value();
 
     // 校验 Scope 是否匹配 (防止把 Role 权限设成了 Global)
-    if (target == SetTarget::Global && meta.scope != PermMeta::Scope::Global) return;
-    if (target != SetTarget::Global && meta.scope != PermMeta::Scope::Role) return;
+    if (target == TargetField::Global && meta.scope != PermMeta::Scope::Global) return;
+    if (target != TargetField::Global && meta.scope != PermMeta::Scope::Role) return;
 
     // 获取对应的默认值
     bool defaultValue = false;
     switch (target) {
-    case SetTarget::Global:
+    case TargetField::Global:
         defaultValue = *meta.defValue.global;
         break;
-    case SetTarget::Member:
+    case TargetField::Member:
         defaultValue = *meta.defValue.member;
         break;
-    case SetTarget::Guest:
+    case TargetField::Guest:
         defaultValue = *meta.defValue.guest;
         break;
     }
@@ -45,13 +45,13 @@ void PermStorage::set(HashedStringView key, bool value, SetTarget target) {
         if (it != data.end()) {
             auto& set = it->second;
             switch (target) {
-            case SetTarget::Global:
+            case TargetField::Global:
                 set.global.reset();
                 break;
-            case SetTarget::Member:
+            case TargetField::Member:
                 set.member.reset();
                 break;
-            case SetTarget::Guest:
+            case TargetField::Guest:
                 set.guest.reset();
                 break;
             }
@@ -69,29 +69,29 @@ void PermStorage::set(HashedStringView key, bool value, SetTarget target) {
 
         auto& set = it->second;
         switch (target) {
-        case SetTarget::Global:
+        case TargetField::Global:
             set.global = value;
             break;
-        case SetTarget::Member:
+        case TargetField::Member:
             set.member = value;
             break;
-        case SetTarget::Guest:
+        case TargetField::Guest:
             set.guest = value;
             break;
         }
     }
 }
-bool PermStorage::resolve(HashedStringView key, SetTarget target) const {
+bool PermStorage::resolve(HashedStringView key, TargetField target) const {
     auto stored = get(key);
     if (stored.has_value()) {
         switch (target) {
-        case SetTarget::Global:
+        case TargetField::Global:
             if (stored->global.has_value()) return *stored->global;
             break;
-        case SetTarget::Member:
+        case TargetField::Member:
             if (stored->member.has_value()) return *stored->member;
             break;
-        case SetTarget::Guest:
+        case TargetField::Guest:
             if (stored->guest.has_value()) return *stored->guest;
             break;
         }
