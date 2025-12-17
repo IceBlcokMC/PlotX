@@ -1,6 +1,10 @@
 #pragma once
 #include "plotx/Global.hpp"
-#include <cstdint>
+#include "plotx/perm/PermStorage.hpp"
+
+#include <ll/api/reflection/Reflection.h>
+#include <ll/api/reflection/Serialization.h>
+
 #include <string>
 #include <vector>
 
@@ -26,6 +30,8 @@ struct PlotModel {
     int                       sellingPrice_{NotForSale}; // 出售价格 (-1 代表不出售)
     std::vector<std::string>  members_{};                // 地皮成员
     std::vector<CommentModel> comments_{};               // 评论
+
+    PermStorage permStorage{}; // 权限存储
 };
 
 STATIC_ASSERT_AGGREGATE(CommentModel);

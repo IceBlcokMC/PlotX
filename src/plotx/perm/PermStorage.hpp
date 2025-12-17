@@ -2,7 +2,7 @@
 #include "PermMeta.hpp"
 #include "plotx/infra/HashedStringView.hpp"
 
-#include "nlohmann/json.hpp"
+#include <ll/api/Expected.h>
 
 #include <unordered_map>
 
@@ -12,18 +12,17 @@ namespace plotx {
  * 稀疏存储容器
  */
 class PermStorage {
+public:
     std::unordered_map<HashedString, PermMeta::ValueEntry, HashedStringHasher, HashedStringEqual> data;
 
-public:
+    ll::Expected<> ensureData();
+
     optional_ref<const PermMeta::ValueEntry> get(HashedStringView key) const;
 
     enum class TargetField { Global, Member, Guest };
     void set(HashedStringView key, bool value, TargetField target);
 
     bool resolve(HashedStringView key, TargetField target) const;
-
-    nlohmann::json toJson() const;
-    void           fromJson(nlohmann::json const& j);
 };
 
 } // namespace plotx

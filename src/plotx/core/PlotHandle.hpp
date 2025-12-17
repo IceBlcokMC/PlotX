@@ -87,9 +87,9 @@ public:
     PXAPI void removeComment(CommentID id);
 
     // helper
-    PXNDAPI nlohmann::json dump() const;
+    PXNDAPI ll::Expected<nlohmann::json> toJson() const;
 
-    PXNDAPI static std::shared_ptr<PlotHandle> load(nlohmann::json& json);
+    PXNDAPI static ll::Expected<std::shared_ptr<PlotHandle>> load(nlohmann::json& json);
 };
 
 

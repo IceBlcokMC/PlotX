@@ -98,30 +98,27 @@ bool PermStorage::resolve(HashedStringView key, TargetField target) const {
     }
     return false;
 }
-nlohmann::json PermStorage::toJson() const { return reflection::struct2json(data).value(); }
-void           PermStorage::fromJson(nlohmann::json const& j) {
-    data.clear();
-    if (!j.is_object()) return;
 
-    for (const auto& [keyStr, valJson] : j.items()) {
-        HashedString hKey(keyStr);
-
-        PermMeta::ValueEntry vSet;
-        reflection::json2structDiffPatch(vSet, valJson);
-
-        HashedStringView view(hKey);
-        auto             metaOpt = PermRegistry::getMeta(view);
-        if (metaOpt) {
-            const auto& def = metaOpt.value().defValue;
-            if (vSet.global == def.global) vSet.global.reset();
-            if (vSet.member == def.member) vSet.member.reset();
-            if (vSet.guest == def.guest) vSet.guest.reset();
+ll::Expected<> PermStorage::ensureData() {
+    auto iter = data.begin();
+    while (iter != data.end()) {
+        auto& [key, val] = *iter;
+        auto metaOpt     = PermRegistry::getMeta(key);
+        if (!metaOpt) {
+            iter = data.erase(iter);
+            continue;
         }
-
-        if (vSet.global || vSet.member || vSet.guest) {
-            data.emplace(std::move(hKey), vSet);
+        const auto& def = metaOpt.value().defValue;
+        if (val.global == def.global) val.global.reset();
+        if (val.member == def.member) val.member.reset();
+        if (val.guest == def.guest) val.guest.reset();
+        if (!val.global && !val.member && !val.guest) {
+            iter = data.erase(iter);
+            continue;
         }
+        ++iter;
     }
+    return {};
 }
 
 } // namespace plotx

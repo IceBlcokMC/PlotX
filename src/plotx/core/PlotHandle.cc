@@ -177,11 +177,13 @@ void PlotHandle::removeComment(CommentID id) {
 
 
 // helper
-nlohmann::json PlotHandle::dump() const { return reflection::struct2json(impl->data_).value(); }
-
-std::shared_ptr<PlotHandle> PlotHandle::load(nlohmann::json& json) {
+ll::Expected<nlohmann::json>              PlotHandle::toJson() const { return reflection::struct2json(impl->data_); }
+ll::Expected<std::shared_ptr<PlotHandle>> PlotHandle::load(nlohmann::json& json) {
     auto record = PlotModel{};
     reflection::json2structVersionPatch(json, record);
+    if (auto res = record.permStorage.ensureData(); !res) {
+        return ll::makeStringError(res.error().message());
+    }
     return make(std::move(record));
 }
 

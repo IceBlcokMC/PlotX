@@ -99,13 +99,14 @@ void PlotRegistry::_loadPlots(ll::io::Logger& logger) {
             continue;
         }
 
-        auto json = nlohmann::json::parse(v);
-        auto ptr  = PlotHandle::load(json);
-        if (!ptr) {
-            logger.error("Failed to load plot from database: {}", k);
+        auto json     = nlohmann::json::parse(v);
+        auto expected = PlotHandle::load(json);
+        if (!expected) {
+            logger.error("Failed to load plot from database: '{}' => {}", k, expected.error().message());
             continue;
         }
-
+        auto ptr = expected.value();
+        assert(ptr != nullptr);
         impl_->plots_.emplace(IntEncoder::encode(ptr->getCoord().x, ptr->getCoord().z), std::move(ptr));
     }
 
