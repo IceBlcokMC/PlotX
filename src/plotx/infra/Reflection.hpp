@@ -24,7 +24,7 @@ template <class T, class J = nlohmann::ordered_json>
 inline void json2structDiffPatch(T& t, J& j) {
     auto diff = struct2json(t).value();
     diff.merge_patch(j);
-    json2struct(t, j);
+    json2struct(t, diff);
 }
 
 template <class T>
