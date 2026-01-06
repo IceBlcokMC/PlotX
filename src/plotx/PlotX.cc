@@ -1,6 +1,7 @@
 #include "PlotX.hpp"
 #include "command/PlotXCommand.hpp"
 #include "core/Config.hpp"
+#include "core/permc/PlotInterceptorDelegate.hpp"
 #include "plotx/core/PlotEventDriven.hpp"
 #include "plotx/core/PlotRegistry.hpp"
 #include "plotx/core/PlotService.hpp"
@@ -21,6 +22,10 @@
 #include "econbridge/detail/NullEconomy.h"
 #include "econbridge/detail/ScoreboardEconomy.h"
 
+#include "perm_core/model/PermMapping.hpp"
+
+#include <perm_core/interceptor/PermInterceptor.hpp>
+
 namespace plotx {
 
 
@@ -32,6 +37,8 @@ struct PlotX::Impl {
     std::unique_ptr<PlotService> service{nullptr};
 
     std::shared_ptr<econbridge::IEconomy> economy{nullptr};
+
+    std::unique_ptr<permc::PermInterceptor> interceptor{nullptr};
 
     explicit Impl() : self(*ll::mod::NativeMod::current()) {}
 
@@ -76,6 +83,12 @@ bool PlotX::load() {
     logger.debug("Try to load config");
     loadConfig();
 
+    logger.debug("Initialize perm_core");
+    if (auto exp = permc::PermMapping::get().initTypeNameMapping(getSelf().getConfigDir() / "PermMapping.json"); !exp) {
+        exp.error().log(logger);
+        return false;
+    }
+
     logger.debug("Initialize PlotRegistry");
     impl_->registry = std::make_unique<PlotRegistry>(*this);
     impl_->service  = std::make_unique<PlotService>(*impl_->registry, *this);
@@ -91,6 +104,12 @@ bool PlotX::enable() {
     }
 
     impl_->plotEventDriven = std::make_unique<PlotEventDriven>();
+
+    impl_->interceptor = PlotInterceptorDelegate::create(*impl_->registry, gConfig_.interceptor);
+    if (!impl_->interceptor) {
+        getLogger().error("Failed to create PlotInterceptorDelegate");
+        return false;
+    }
 
     PlotXCommand::setup();
 

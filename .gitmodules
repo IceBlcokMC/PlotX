@@ -1,0 +1,3 @@
+[submodule "PermCore"]
+	path = PermCore
+	url = git@github.com:IceBlcokMC/PermCore.git

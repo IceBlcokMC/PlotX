@@ -14,6 +14,13 @@ namespace plotx {
 
 PlotInterceptorDelegate::PlotInterceptorDelegate(PlotRegistry& registry) : registry_(registry) {}
 PlotInterceptorDelegate::~PlotInterceptorDelegate() = default;
+
+std::unique_ptr<permc::PermInterceptor>
+PlotInterceptorDelegate::create(PlotRegistry& registry, permc::InterceptorConfig const& config) {
+    return std::make_unique<permc::PermInterceptor>(std::make_unique<PlotInterceptorDelegate>(registry), config);
+}
+
+
 permc::PermDecision PlotInterceptorDelegate::preCheck(BlockSource& blockSource, BlockPos const& blockPos) {
     if (blockSource.getDimensionId() != PlotX::getDimensionId()) {
         return permc::PermDecision::Allow; // 不在地皮维度放行

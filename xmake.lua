@@ -8,7 +8,8 @@ add_requires("levibuildscript")
 
 -- iceblcokmc
 add_requires("economy_bridge main")
-add_requires("perm_core 8ae921b0b10ec56ff1a1cb840cf92f22fad407d8")
+
+includes("PermCore/static_lib.lua")
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
@@ -21,6 +22,9 @@ option_end()
 
 
 target("PlotX") -- Change this to your mod name.
+    add_deps("PermCore")
+    add_includedirs("PermCore/src")
+    add_defines("FMT_HEADER_ONLY=1")
     add_rules("@levibuildscript/linkrule")
     add_rules("@levibuildscript/modpacker")
     add_rules("plugin.compile_commands.autoupdate")

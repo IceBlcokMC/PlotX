@@ -1,6 +1,8 @@
 #pragma once
 #include "perm_core/interceptor/InterceptorDelegate.hpp"
 
+#include <perm_core/interceptor/PermInterceptor.hpp>
+
 namespace plotx {
 class PlotRegistry;
 }
@@ -12,6 +14,9 @@ class PlotInterceptorDelegate final : public permc::InterceptorDelegate {
 public:
     explicit PlotInterceptorDelegate(PlotRegistry& registry);
     ~PlotInterceptorDelegate() override;
+
+    [[nodiscard]] static std::unique_ptr<permc::PermInterceptor>
+    create(PlotRegistry& registry, permc::InterceptorConfig const& config);
 
     permc::PermDecision preCheck(BlockSource& blockSource, BlockPos const& blockPos) override;
     permc::PermDecision preCheck(BlockSource& blockSource, AABB const& aabb) override;

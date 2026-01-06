@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+#include "perm_core/interceptor/InterceptorConfig.hpp"
+
 namespace plotx {
 
 struct Config {
@@ -27,6 +29,8 @@ struct Config {
     struct {
         int sellPrice{100}; // 地皮出售价格
     } plot;
+
+    permc::InterceptorConfig interceptor;
 };
 
 inline Config gConfig_;
