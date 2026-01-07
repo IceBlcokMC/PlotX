@@ -1,29 +1,29 @@
 #include "PlotHandle.hpp"
 #include "model/StorageModel.hpp"
-#include "plotx/infra/DirtyCounter.hpp"
 #include "plotx/infra/IdAllocator.hpp"
 #include "plotx/infra/Reflection.hpp"
 #include "plotx/math/PlotCoord.hpp"
+#include "plotx/utils/TimeUtils.hpp"
 
 #include "mc/platform/UUID.h"
 
 #include "nlohmann/json.hpp"
 #include "nlohmann/json_fwd.hpp"
 
-#include "plotx/utils/TimeUtils.hpp"
+#include <perm_core/model/PermRole.hpp>
 
 #include <algorithm>
-#include <perm_core/model/PermRole.hpp>
 #include <string>
 #include <utility>
 #include <vector>
 
+
 namespace plotx {
 
 struct PlotHandle::Impl {
-    PlotModel    data_{};
-    DirtyCounter dirty_{};
-    IdAllocator  commentId_{};
+    PlotModel        data_{};
+    std::atomic_bool isDirty_{};
+    IdAllocator      commentId_{};
 
     // 缓存
     PlotCoord                        coordCache_{};
@@ -71,7 +71,9 @@ PlotHandle::PlotHandle(PlotCoord const& coord, mce::UUID const& owner) : PlotHan
 
 PlotHandle::~PlotHandle() = default;
 
-void PlotHandle::markDirty() { impl->dirty_.inc(); }
+void PlotHandle::markDirty() { impl->isDirty_.store(true); }
+bool PlotHandle::isDirty() const { return impl->isDirty_.load(); }
+void PlotHandle::resetDirty() { impl->isDirty_.store(false); }
 
 permc::PermRole PlotHandle::getPlayerRole(mce::UUID const& player) const {
     if (isOwner(player)) {

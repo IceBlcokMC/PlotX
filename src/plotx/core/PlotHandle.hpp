@@ -51,6 +51,10 @@ public:
      */
     PXAPI void markDirty();
 
+    PXNDAPI bool isDirty() const;
+
+    PXAPI void resetDirty();
+
     permc::PermRole         getPlayerRole(mce::UUID const& player) const;
     permc::PermTable&       getPermTable();
     permc::PermTable const& getPermTable() const;
