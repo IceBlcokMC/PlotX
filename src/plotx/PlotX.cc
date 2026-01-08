@@ -10,12 +10,13 @@
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/io/LogLevel.h"
 #include "ll/api/mod/RegisterHelper.h"
+#include "ll/api/thread/ThreadPoolExecutor.h"
 #include <ll/api/service/Bedrock.h>
 
 #include "mc/world/level/dimension/VanillaDimensions.h"
+#include <mc/world/level/Level.h>
 
 #include <filesystem>
-#include <mc/world/level/Level.h>
 #include <memory>
 
 #include "econbridge/detail/LegacyMoneyEconomy.h"
@@ -23,7 +24,6 @@
 #include "econbridge/detail/ScoreboardEconomy.h"
 
 #include "perm_core/model/PermMapping.hpp"
-
 #include <perm_core/interceptor/PermInterceptor.hpp>
 
 namespace plotx {
@@ -39,6 +39,8 @@ struct PlotX::Impl {
     std::shared_ptr<econbridge::IEconomy> economy{nullptr};
 
     std::unique_ptr<permc::PermInterceptor> interceptor{nullptr};
+
+    std::unique_ptr<ll::thread::ThreadPoolExecutor> thread_pool_executor{nullptr};
 
     explicit Impl() : self(*ll::mod::NativeMod::current()) {}
 
@@ -89,6 +91,9 @@ bool PlotX::load() {
         return false;
     }
 
+    logger.debug("Initialize thread pool");
+    impl_->thread_pool_executor = std::make_unique<ll::thread::ThreadPoolExecutor>("PlotX-ThreadPool", 2);
+
     logger.debug("Initialize PlotRegistry");
     impl_->registry = std::make_unique<PlotRegistry>(*this);
     impl_->service  = std::make_unique<PlotService>(*impl_->registry, *this);
@@ -119,9 +124,11 @@ bool PlotX::enable() {
 bool PlotX::disable() {
     impl_->interceptor.reset();
     impl_->plotEventDriven.reset();
-    impl_->service.reset();
     impl_->economy.reset();
+    impl_->service.reset();
     impl_->registry.reset();
+    impl_->thread_pool_executor->destroy();
+    impl_->thread_pool_executor.reset();
 
     return true;
 }
@@ -130,8 +137,9 @@ bool PlotX::disable() {
 ll::mod::NativeMod& PlotX::getSelf() const { return impl_->self; }
 ll::io::Logger&     PlotX::getLogger() const { return impl_->self.getLogger(); }
 
-PlotRegistry* PlotX::getPlotRegistry() const { return impl_->registry.get(); }
-PlotService*  PlotX::getService() const { return impl_->service.get(); }
+PlotRegistry*                   PlotX::getPlotRegistry() const { return impl_->registry.get(); }
+PlotService*                    PlotX::getService() const { return impl_->service.get(); }
+ll::thread::ThreadPoolExecutor& PlotX::getThreadPool() const { return *impl_->thread_pool_executor; }
 
 std::filesystem::path PlotX::getConfigPath() const { return getSelf().getConfigDir() / ConfigFileName; }
 

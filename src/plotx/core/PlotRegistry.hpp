@@ -27,10 +27,6 @@ class PlotRegistry final {
     struct Impl;
     std::unique_ptr<Impl> impl_;
 
-    void _upgradeDatabase(ll::io::Logger& logger);
-    void _loadAdmins(ll::io::Logger& logger);
-    void _loadPlots(ll::io::Logger& logger);
-
 public:
     PLOTX_DISALLOW_COPY_AND_MOVE(PlotRegistry);
     explicit PlotRegistry(PlotX& plotx);
@@ -63,11 +59,6 @@ public:
      * @return 地皮坐标
      */
     std::optional<PlotCoord> findUnownedPlot(int x = 0, int z = 0) const;
-
-public:
-    static constexpr std::string_view VersionKey    = "_version_"; // 版本号
-    static constexpr std::string_view AdminsKey     = "admins";    // 管理员
-    static constexpr std::string_view PlotKeyPrefix = "plot_";     // 地皮
 };
 
 

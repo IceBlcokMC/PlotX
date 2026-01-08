@@ -1,6 +1,6 @@
 #pragma once
-
 #include "ll/api/mod/NativeMod.h"
+
 #include <filesystem>
 #include <memory>
 #include <string_view>
@@ -8,6 +8,10 @@
 #include "plotx/Global.hpp"
 
 #include "econbridge/IEconomy.h"
+
+namespace ll::thread {
+class ThreadPoolExecutor;
+}
 
 namespace plotx {
 
@@ -32,6 +36,8 @@ public:
     PXAPI class PlotRegistry* getPlotRegistry() const;
 
     PXAPI class PlotService* getService() const;
+
+    PXNDAPI ll::thread::ThreadPoolExecutor& getThreadPool() const;
 
     PXNDAPI std::filesystem::path getConfigPath() const;
     PXNDAPI std::filesystem::path getDatabasePath() const;
