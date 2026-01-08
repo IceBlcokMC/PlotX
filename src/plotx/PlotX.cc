@@ -1,10 +1,11 @@
 #include "PlotX.hpp"
+#include "adapters/permc/PlotInterceptorDelegate.hpp"
 #include "command/PlotXCommand.hpp"
 #include "core/Config.hpp"
-#include "adapters/permc/PlotInterceptorDelegate.hpp"
 #include "plotx/core/PlotEventDriven.hpp"
 #include "plotx/core/PlotRegistry.hpp"
 #include "plotx/core/PlotService.hpp"
+
 
 #include "ll/api/Config.h"
 #include "ll/api/i18n/I18n.h"
@@ -26,6 +27,8 @@
 #include "perm_core/model/PermMapping.hpp"
 #include <perm_core/interceptor/PermInterceptor.hpp>
 
+#include "ll-bstats/Telemetry.h"
+
 namespace plotx {
 
 
@@ -41,6 +44,8 @@ struct PlotX::Impl {
     std::unique_ptr<permc::PermInterceptor> interceptor{nullptr};
 
     std::unique_ptr<ll::thread::ThreadPoolExecutor> thread_pool_executor{nullptr};
+
+    std::unique_ptr<ll_bstats::Telemetry> telemetry{nullptr};
 
     explicit Impl() : self(*ll::mod::NativeMod::current()) {}
 
@@ -116,12 +121,21 @@ bool PlotX::enable() {
         return false;
     }
 
+    // TODO: fix version
+    impl_->telemetry = std::make_unique<ll_bstats::Telemetry>(28768, "v0.0.0");
+    if (gConfig_.plot.telemetry) {
+        getLogger().info("Telemetry enabled (anonymous usage statistics).");
+        getLogger().info("Opt-out via config.json.");
+        impl_->telemetry->launch(getThreadPool());
+    }
+
     PlotXCommand::setup();
 
     return true;
 }
 
 bool PlotX::disable() {
+    impl_->telemetry.reset();
     impl_->interceptor.reset();
     impl_->plotEventDriven.reset();
     impl_->economy.reset();

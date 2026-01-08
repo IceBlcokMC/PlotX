@@ -8,6 +8,7 @@ add_requires("levibuildscript")
 
 -- iceblcokmc
 add_requires("economy_bridge main")
+add_requires("ll-bstats 0.1.0")
 
 includes("PermCore/static_lib.lua")
 
@@ -60,7 +61,11 @@ target("PlotX") -- Change this to your mod name.
         "src/**.cc"
     )
 
-    add_packages("levilamina", "economy_bridge", "perm_core")
+    add_packages(
+        "levilamina",
+        "economy_bridge",
+        "ll-bstats"
+    )
 
     if has_config("overworld") then
         add_defines("PLOTX_OVERWORLD")

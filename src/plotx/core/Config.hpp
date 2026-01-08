@@ -21,6 +21,8 @@ struct Config {
 
     struct {
         int sellPrice{100}; // 地皮出售价格
+
+        bool telemetry{true}; // 是否开启遥测(匿名统计非敏感信息)
     } plot;
 
     permc::InterceptorConfig interceptor;
