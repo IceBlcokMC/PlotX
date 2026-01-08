@@ -61,8 +61,7 @@ struct AdminParam {
 
 
 void PlotXCommand::setup() {
-
-    auto& handle = ll::command::CommandRegistrar::getInstance().getOrCreateCommand("plotx");
+    auto& handle = ll::command::CommandRegistrar::getInstance().getOrCreateCommand("plotx", "PlotX - 地皮系统"_tr());
 
     // plotx admin <add|remove> <name>
     handle.overload<AdminParam>().text("admin").required("action").required("name").execute(
