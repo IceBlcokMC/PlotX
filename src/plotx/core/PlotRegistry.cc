@@ -152,15 +152,18 @@ struct PlotRegistry::Impl {
     std::string buildStorageKey(std::shared_ptr<PlotHandle> const& handle) {
         return fmt::format("{}{},{}", PlotKeyPrefix, handle->getCoord().x, handle->getCoord().z);
     }
+    void savePlot(std::shared_ptr<PlotHandle> const& handle) {
+        auto json = handle->toJson();
+        if (this->db_->set(buildStorageKey(handle), json->dump())) {
+            handle->resetDirty();
+        }
+    }
     void saveDirtyPlot() {
         for (auto const& [id, plot] : plots_) {
             if (!plot->isDirty()) {
                 continue;
             }
-            auto json = plot->toJson();
-            if (this->db_->set(buildStorageKey(plot), json->dump())) {
-                plot->resetDirty();
-            }
+            savePlot(plot);
         }
     }
     void saveDirtyAdmins() {
