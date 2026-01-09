@@ -2,19 +2,31 @@
 
 namespace plotx {
 
+#define GEN_GIT_COMMIT   "${GIT_COMMIT}"
+#define GEN_GIT_BRANCH   "${GIT_BRANCH}"
+#define GEN_GIT_TAG      "${GIT_TAG}"
+#define GEN_BUILD_TARGET "${BUILD_TARGET}"
+#define GEN_IS_MORE_DIM  ${IS_MORE_DIM}
 
 struct BuildInfo {
     // commit hash (e.g. "a1b2c3d4")
-    static constexpr auto Commit = "${GIT_COMMIT}";
+    static constexpr auto Commit = GEN_GIT_COMMIT;
 
     // build branch (e.g. "main")
-    static constexpr auto Branch = "${GIT_BRANCH}";
+    static constexpr auto Branch = GEN_GIT_BRANCH;
 
     // build tag (e.g. "v1.2.3")
     // v0.1.0-alpha.1-14-g61162a0 -> v0.1.0-alpha.1 is the tag
     // 14 is the tag distance
     // g61162a0 is the tag commit hash
-    static constexpr auto Tag = "${GIT_TAG}";
+    static constexpr auto Tag = GEN_GIT_TAG;
+
+    // build target
+    // MoreDimensions or Vanilla
+    static constexpr auto BuildTarget = GEN_BUILD_TARGET;
+
+    static constexpr bool IsMoreDimensions = GEN_IS_MORE_DIM;
+    static constexpr bool IsVanilla = !IsMoreDimensions;
 };
 
 

@@ -6,7 +6,7 @@
 #include "plotx/core/PlotEventDriven.hpp"
 #include "plotx/core/PlotRegistry.hpp"
 #include "plotx/core/PlotService.hpp"
-
+#include "plotx/world/GeneratorInitializer.hpp"
 
 #include "ll/api/Config.h"
 #include "ll/api/i18n/I18n.h"
@@ -129,6 +129,11 @@ bool PlotX::enable() {
         impl_->telemetry->launch(getThreadPool());
     }
 
+    if (auto exp = plotx::world::GeneratorInitializer{}(); !exp) {
+        exp.error().log(getLogger());
+        return false;
+    }
+
     PlotXCommand::setup();
 
     return true;
@@ -174,20 +179,15 @@ void PlotX::saveConfig() const {
 }
 
 int PlotX::getDimensionId() {
-#ifdef PLOTX_OVERWORLD
-    return 0;
-#else
-    static int const dimensionId = VanillaDimensions::fromString(DimensionName.data());
-    return dimensionId;
-#endif
+    if constexpr (BuildInfo::IsVanilla) {
+        return 0;
+    } else {
+        static int const dimensionId = VanillaDimensions::fromString("plotx");
+        return dimensionId;
+    }
 }
-bool PlotX::isMoreDimensionsEnv() {
-#ifdef PLOTX_OVERWORLD
-    return false;
-#else
-    return true;
-#endif
-}
+bool PlotX::isMoreDimensionsEnv() { return BuildInfo::IsMoreDimensions; }
+
 std::shared_ptr<Dimension> PlotX::getPlotDimension() {
     auto dimension =
         ll::service::getLevel().transform([](Level& level) { return level.getDimension(getDimensionId()).lock(); });

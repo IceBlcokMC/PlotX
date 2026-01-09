@@ -3,7 +3,8 @@ add_rules("mode.debug", "mode.release")
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 add_repositories("iceblcokmc https://github.com/IceBlcokMC/xmake-repo.git")
 
-add_requires("levilamina 1.7.0", {configs = {target_type = "server"}})
+LeviLaminaVersion = "1.7.3"
+add_requires("levilamina "..LeviLaminaVersion, {configs = {target_type = "server"}})
 add_requires("levibuildscript")
 
 -- iceblcokmc
@@ -12,17 +13,24 @@ add_requires("ll-bstats 0.1.0")
 
 includes("PermCore/static_lib.lua")
 
+if has_config("more_dim") then
+    add_requires("more-dimensions 0.12.0")
+    add_requireconfs("**.levilamina", { override=true, version=LeviLaminaVersion, configs = {target_type = "server"}})
+end
+
 if not has_config("vs_runtime") then
     set_runtimes("MD")
 end
 
-option("overworld")
-    set_default(true)
+-- true: 使用多维度 false: 使用原版
+option("more_dim")
+    set_default(false)
     set_showmenu(true)
 option_end()
 
 
 target("PlotX") -- Change this to your mod name.
+    set_license("AGPL-3.0")
     add_deps("PermCore")
     add_includedirs("PermCore/src")
     add_defines("FMT_HEADER_ONLY=1")
@@ -56,10 +64,7 @@ target("PlotX") -- Change this to your mod name.
         "src",
         "patches"
     )
-    add_files(
-        "src/**.cpp",
-        "src/**.cc"
-    )
+    add_files("src/**.cc")
 
     add_packages(
         "levilamina",
@@ -70,8 +75,16 @@ target("PlotX") -- Change this to your mod name.
     add_configfiles("src/BuildInfo.h.in")
     set_configdir("src/plotx")
 
-    if has_config("overworld") then
-        add_defines("PLOTX_OVERWORLD")
+    if has_config("more_dim") then
+        add_files("src-mdim/**.cc")
+
+        add_packages("more-dimensions")
+        set_configvar("IS_MORE_DIM", "true")
+        set_configvar("BUILD_TARGET", "MoreDimensions")
+    else 
+        add_files("src-vanilla/**.cc")
+        set_configvar("IS_MORE_DIM", "false")
+        set_configvar("BUILD_TARGET", "Vanilla")
     end
 
     after_build(function(target)

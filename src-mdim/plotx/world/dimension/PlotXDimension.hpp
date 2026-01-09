@@ -1,10 +1,12 @@
 #pragma once
-#ifndef PLOTX_OVERWORLD
 #include "mc/world/level/dimension/Dimension.h"
+
+#include "more_dimensions/api/dimension/CustomDimensionManager.h"
 
 namespace plotx::world {
 
 class PlotXDimension : public Dimension {
+public:
     PlotXDimension(std::string const& name, more_dimensions::DimensionFactoryInfo const& info);
 
     static CompoundTag generateNewData();
@@ -30,4 +32,3 @@ class PlotXDimension : public Dimension {
 };
 
 } // namespace plotx::world
-#endif

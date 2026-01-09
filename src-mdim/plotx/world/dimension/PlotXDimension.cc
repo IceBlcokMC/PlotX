@@ -1,5 +1,4 @@
-#ifndef PLOTX_OVERWORLD
-#include "PlotXDimension.h"
+#include "PlotXDimension.hpp"
 #include "plotx/world/Helper.hpp"
 
 #include "mc/common/Brightness.h"
@@ -10,6 +9,7 @@
 #include "mc/world/level/LevelSeed64.h"
 #include "mc/world/level/chunk/vanilla_level_chunk_upgrade/VanillaLevelChunkUpgrade.h"
 #include "mc/world/level/dimension/Dimension.h"
+#include "mc/world/level/dimension/DimensionArguments.h"
 #include "mc/world/level/dimension/DimensionBrightnessRamp.h"
 #include "mc/world/level/dimension/DimensionHeightRange.h"
 #include "mc/world/level/dimension/OverworldBrightnessRamp.h"
@@ -24,13 +24,20 @@
 #include "plotx/world/generator/PlotGenerator.hpp"
 
 #include "minecraft/FixedBiomeSource.h"
+#include <utility>
 
 namespace plotx::world {
 
 
 PlotXDimension::PlotXDimension(std::string const& name, more_dimensions::DimensionFactoryInfo const& info)
-: Dimension(info.level, info.dimId, {helper::WorldMinHeight, helper::WorldMaxHeight}, info.scheduler, name) {
-    // 这里说明下，在DimensionFactoryInfo里面more-dimensions会提供维度id，请不要使用固定维度id，避免id冲突导致维度注册出现异常
+: Dimension(
+      DimensionArguments{
+          std::move(info.arguments),
+          info.dimId,
+          {helper::WorldMinHeight, helper::WorldMaxHeight},
+          name
+}
+  ) {
     mDefaultBrightness->sky  = Brightness::MAX();
     mSeaLevel                = -61;
     mHasWeather              = true;
@@ -90,4 +97,3 @@ short PlotXDimension::getCloudHeight() const { return 192; }
 // bool PlotXDimension::hasPrecipitationFog() const { return true; }
 
 } // namespace plotx::world
-#endif

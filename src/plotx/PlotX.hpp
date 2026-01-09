@@ -53,7 +53,6 @@ public:
 
 private:
     static constexpr std::string_view ConfigFileName  = "config.json";
-    static constexpr std::string_view DimensionName   = "plotx";
     static constexpr std::string_view DatabaseDirName = "PlotXDB";
 
     struct Impl;
