@@ -1,4 +1,5 @@
 #include "PlotX.hpp"
+#include "BuildInfo.h"
 #include "adapters/permc/PlotInterceptorDelegate.hpp"
 #include "command/PlotXCommand.hpp"
 #include "core/Config.hpp"
@@ -121,8 +122,7 @@ bool PlotX::enable() {
         return false;
     }
 
-    // TODO: fix version
-    impl_->telemetry = std::make_unique<ll_bstats::Telemetry>(28768, "v0.0.0");
+    impl_->telemetry = std::make_unique<ll_bstats::Telemetry>(28768, BuildInfo::Tag);
     if (gConfig_.plot.telemetry) {
         getLogger().info("Telemetry enabled (anonymous usage statistics).");
         getLogger().info("Opt-out via config.json.");

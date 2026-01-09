@@ -67,6 +67,9 @@ target("PlotX") -- Change this to your mod name.
         "ll-bstats"
     )
 
+    add_configfiles("src/BuildInfo.h.in")
+    set_configdir("src/plotx")
+
     if has_config("overworld") then
         add_defines("PLOTX_OVERWORLD")
     end

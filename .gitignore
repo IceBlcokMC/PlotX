@@ -559,5 +559,4 @@ fabric.properties
 /.vscode/
 /bin/
 .idea/
-src-scripts/PlotX-Scripts
-!src-scripts/PlotX-Scripts/manifest.json
+src/plotx/BuildInfo.h
