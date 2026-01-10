@@ -3,6 +3,11 @@
     "entry": "${modFile}",
     "version": "${modVersion}",
     "type": "native",
+    "dependencies": [
+        {
+            "name": "iListenAttentively"
+        }
+    ],
     "optionalDependencies": [
         {
             "name": "more-dimensions"

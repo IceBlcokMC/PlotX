@@ -3,7 +3,7 @@ add_rules("mode.debug", "mode.release")
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 add_repositories("iceblcokmc https://github.com/IceBlcokMC/xmake-repo.git")
 
-LeviLaminaVersion = "1.7.3"
+LeviLaminaVersion = "1.7.7"
 add_requires("levilamina "..LeviLaminaVersion, {configs = {target_type = "server"}})
 add_requires("levibuildscript")
 
@@ -14,7 +14,7 @@ add_requires("ll-bstats 0.1.2")
 includes("PermCore/static_lib.lua")
 
 if is_config("flavor", "mdim") then
-    add_requires("more-dimensions 0.12.0")
+    add_requires("more-dimensions 0.12.1")
     add_requireconfs("**.levilamina", { override=true, version=LeviLaminaVersion, configs = {target_type = "server"}})
 end
 
