@@ -44,6 +44,8 @@ public:
 
     ll::Expected<> transferPlotTo(Player& player, std::shared_ptr<PlotHandle> handle);
 
+    ll::Expected<> payEconomyAndClaimPlot(Player& player, PlotCoord coord);
+
 private:
     ll::Expected<> handleTeleportToPlot(Player& player, int x, int z) const;
 };

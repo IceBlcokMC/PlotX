@@ -2,7 +2,9 @@
 
 #include "PlotHandle.hpp"
 #include "PlotRegistry.hpp"
+#include "ll/api/Expected.h"
 #include "plotx/PlotX.hpp"
+#include "plotx/core/Config.hpp"
 #include "plotx/math/PlotCoord.hpp"
 #include "plotx/utils/FeedbackUtils.hpp"
 
@@ -150,6 +152,28 @@ ll::Expected<> PlotService::transferPlotTo(Player& player, std::shared_ptr<PlotH
 
     handle->setOwner(player.getUuid());
     return {};
+}
+
+ll::Expected<> PlotService::payEconomyAndClaimPlot(Player& player, PlotCoord coord) {
+    auto localeCode = player.getLocaleCode();
+
+    auto economy = impl->mod.getEconomy();
+    if (!economy) {
+        return makeSystemError("插件异常，无法处理此请求"_trl(localeCode), "economy is null");
+    }
+
+    auto cost   = gConfig_.plot.sellPrice;
+    auto result = economy->reduce(player.getUuid(), cost);
+    if (!result) {
+        return makeUserError("您的余额不足，无法购买地皮"_trl(localeCode));
+    }
+
+    if (auto result = this->claimPlot(player, coord)) {
+        return {};
+    } else {
+        economy->add(player.getUuid(), cost);
+        return result;
+    }
 }
 
 ll::Expected<> PlotService::handleTeleportToPlot(Player& player, int x, int z) const {

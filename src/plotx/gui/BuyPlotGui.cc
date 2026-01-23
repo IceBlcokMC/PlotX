@@ -30,7 +30,7 @@ void BuyPlotGUI::sendTo(Player& player, PlotCoord coord) {
                     return;
                 }
                 if ((bool)result.value()) {
-                    if (auto exc = PlotX::getInstance().getService()->claimPlot(player, coord)) {
+                    if (auto exc = PlotX::getInstance().getService()->payEconomyAndClaimPlot(player, coord)) {
                         feedback_utils::notifySuccess(
                             player,
                             "购买地皮成功，位置 {},{}"_trl(localeCode, coord.x, coord.z)
